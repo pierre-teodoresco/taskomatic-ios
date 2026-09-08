@@ -66,6 +66,7 @@
 		7926E5CDC32AE17784C5C675 /* BackupSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupSettingsSection.swift; sourceTree = "<group>"; };
 		7B2A9172D460E0F2E72539C5 /* TaskomaticUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskomaticUITests.swift; sourceTree = "<group>"; };
 		8019F298B24873B229A2F5AD /* TaskEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskEditorView.swift; sourceTree = "<group>"; };
+		8C5215AA68268FCF26461B73 /* taskomatic-ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "taskomatic-ios"; path = .; sourceTree = SOURCE_ROOT; };
 		A4C4557D28A0C645D4C973F9 /* TaskStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskStoreTests.swift; sourceTree = "<group>"; };
 		B2F3716CC2EA6873559226E2 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B4498EC4719EAD399285103A /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -74,7 +75,6 @@
 		DB0E195D3E9855F40780FF24 /* TaskStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskStore.swift; sourceTree = "<group>"; };
 		DC6C5506E97B004855A15A47 /* AppStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStrings.swift; sourceTree = "<group>"; };
 		E0E5B5467E8BD9CB91642076 /* TaskomaticUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TaskomaticUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		E73A462D3DCA26FF6596AB2B /* taskomatic */ = {isa = PBXFileReference; lastKnownFileType = folder; name = taskomatic; path = .; sourceTree = SOURCE_ROOT; };
 		EBD4D15E33607F21FF2DBA87 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		EBE21148B36455889FB0BAC8 /* BackupDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupDocument.swift; sourceTree = "<group>"; };
 		F7D8F5365188717FEC18867A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -136,7 +136,7 @@
 		C8386A3F030117EAC77640CD /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				E73A462D3DCA26FF6596AB2B /* taskomatic */,
+				8C5215AA68268FCF26461B73 /* taskomatic-ios */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
