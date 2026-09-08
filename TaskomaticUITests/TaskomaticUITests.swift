@@ -177,6 +177,51 @@ final class TaskomaticUITests: XCTestCase {
   }
 
   @MainActor
+  func testLocalNotificationArrivesWhileSettingsRemainOpen() throws {
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--ui-testing", "--reset-test-store", "-AppleLanguages", "(fr)", "-AppleLocale", "fr_FR",
+    ]
+    addUIInterruptionMonitor(withDescription: "Notification permission") { alert in
+      for title in ["Allow", "Autoriser", "Allow Notifications"] where alert.buttons[title].exists {
+        alert.buttons[title].tap()
+        return true
+      }
+      return false
+    }
+    app.launch()
+    app.buttons["openSettings"].tap()
+    app.switches["remindersToggle"].tap()
+    app.tap()
+    let testButton = app.buttons["testNotification"]
+    XCTAssertTrue(testButton.waitForExistence(timeout: 8))
+    testButton.tap()
+    let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+    let banner = springboard.descendants(matching: .any)
+      .matching(NSPredicate(format: "label CONTAINS %@", "Tes rappels sont prêts")).firstMatch
+    XCTAssertTrue(banner.waitForExistence(timeout: 12))
+    XCTAssertEqual(app.state, .runningForeground)
+    let attachment = XCTAttachment(screenshot: springboard.screenshot())
+    attachment.name = "Test reminder with settings still open"
+    attachment.lifetime = .keepAlways
+    add(attachment)
+
+    // The preview must remain in Notification Center after a foreground refresh.
+    app.terminate()
+    app.launchArguments.removeAll { $0 == "--reset-test-store" }
+    app.launch()
+    XCUIDevice.shared.press(.home)
+    springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.01))
+      .press(
+        forDuration: 0.1,
+        thenDragTo:
+          springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.8)))
+    XCTAssertTrue(banner.waitForExistence(timeout: 5))
+    XCUIDevice.shared.press(.home)
+    app.activate()
+  }
+
+  @MainActor
   func testLocalNotificationArrivesWhileTheAppIsInTheBackground() throws {
     let app = XCUIApplication()
     app.launchArguments = [

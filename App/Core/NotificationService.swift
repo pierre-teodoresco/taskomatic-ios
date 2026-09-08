@@ -85,7 +85,6 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
     do {
       try await NotificationReconciler.replace(
         requests, in: SystemNotificationQueue(center: center))
-      center.removeAllDeliveredNotifications()
       plan = nextPlan
       error = nil
     } catch {
@@ -125,6 +124,8 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
   }
 
   func sendTest(strings: AppStrings) async -> Bool {
+    await refreshAuthorization()
+    guard [.authorized, .provisional, .ephemeral].contains(authorization) else { return false }
     let content = UNMutableNotificationContent()
     content.title = strings("notification.test.title")
     content.body = strings("notification.test.body")
@@ -145,7 +146,7 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
     _ center: UNUserNotificationCenter,
     willPresent notification: UNNotification
   ) async -> UNNotificationPresentationOptions {
-    [.banner, .sound]
+    [.banner, .list, .sound]
   }
 
   nonisolated func userNotificationCenter(

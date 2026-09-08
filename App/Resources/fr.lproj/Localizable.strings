@@ -69,7 +69,7 @@
 "settings.permission.denied" = "Les notifications sont désactivées dans iOS. Ouvre les réglages pour les autoriser.";
 "settings.openios" = "Ouvrir les réglages iOS";
 "settings.test" = "Envoyer un rappel de test";
-"settings.test.sent" = "Un test arrivera dans 5 secondes.";
+"settings.test.sent" = "Test programmé pour dans 5 secondes. Consulte aussi le Centre de notifications ; un mode Concentration peut masquer la bannière.";
 "settings.appearance" = "Apparence";
 "settings.language" = "Langue";
 "settings.system" = "Système";

@@ -2,6 +2,7 @@ import CloudKit
 import SwiftData
 import SwiftUI
 import TaskomaticCore
+import UserNotifications
 
 @MainActor @Observable
 final class AppRuntime {
@@ -27,6 +28,9 @@ final class AppRuntime {
         let name = "com.pierreteodoresco.taskomatic.uitests"
         if arguments.contains("--reset-test-store") {
           UserDefaults.standard.removePersistentDomain(forName: name)
+          // Reset notification fixtures only for the explicitly isolated simulator test store.
+          UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+          UNUserNotificationCenter.current().removeAllDeliveredNotifications()
         }
         settings = AppSettings(defaults: UserDefaults(suiteName: name)!)
         settings.reminderPromptDismissed = true

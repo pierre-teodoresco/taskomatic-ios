@@ -69,7 +69,7 @@
 "settings.permission.denied" = "Notifications are disabled in iOS. Open Settings to enable them.";
 "settings.openios" = "Open iOS Settings";
 "settings.test" = "Send a test reminder";
-"settings.test.sent" = "A test will arrive in 5 seconds.";
+"settings.test.sent" = "Test scheduled for 5 seconds from now. Also check Notification Center; a Focus mode may hide the banner.";
 "settings.appearance" = "Appearance";
 "settings.language" = "Language";
 "settings.system" = "System";

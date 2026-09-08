@@ -36,3 +36,11 @@ The same regression test passed on iPhone SE / iOS 18.2 with the system set to d
 ## Quick-add keyboard dismissal
 
 A failing UI test reproduced the keyboard staying open when the page above quick add was tapped. The page scroll view now clears only quick-add focus through a simultaneous tap gesture, preserving the draft and allowing existing controls to act. The composer is outside the gesture area. The regression test verifies dismissal without insertion, draft retention, resumed typing, filter interaction, and one explicit task insertion. This test and the existing task lifecycle and recurring-task UI tests passed on iPhone 17 / iOS 26.5. The independent review reported no actionable findings.
+
+## Notification visibility
+
+The independent review identified two concrete visibility defects: routine rescheduling erased every delivered notification, including the test, and foreground presentation omitted the Notification Center list. Removing the blanket deletion and requesting `.list` preserves received notifications. `sendTest` now refreshes authorization before scheduling, and both translations describe scheduling rather than promise banner delivery.
+
+A foreground banner test passed before the change, establishing that the delegate worked on the simulator. Extending it to check Notification Center after reopening the app failed before the fix. The completed foreground/retention and background delivery tests both passed on iPhone 17 / iOS 26.5. An intermediate run was interrupted by a simulator test-runner SIGTERM/XPC failure; the successful run used a restarted simulator. Explicit simulator fixture reset also clears pending/delivered notifications so an old preview cannot satisfy a new test. The independent follow-up found no actionable issues.
+
+The connected iPhone was inspected through the app’s notification API: authorization, banners, sounds, lock screen, and Notification Center were enabled; scheduled delivery was disabled; the NotificationService delegate was present. The debugger was detached. These findings do not establish why the user missed the physical-device banner; Focus status remained an unanswered diagnostic question.

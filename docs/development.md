@@ -20,7 +20,7 @@ open -a Simulator
 ./scripts/verify.sh SIMULATOR_UUID
 ```
 
-Debug simulator builds use a local SwiftData store. The `--ui-testing` launch argument selects a dedicated store and preferences suite. `--reset-test-store` resets only that test store. These arguments are compiled out of physical-device and release behavior. Never seed the user's phone with test tasks.
+Debug simulator builds use a local SwiftData store. The `--ui-testing` launch argument selects a dedicated store and preferences suite. `--reset-test-store` resets the test store, test preferences, and this simulator app’s pending/delivered notification fixtures. These arguments are compiled out of physical-device and release behavior. Never seed the user's phone with test tasks.
 
 ## Connected iPhone
 
