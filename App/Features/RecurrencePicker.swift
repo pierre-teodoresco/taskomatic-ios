@@ -24,21 +24,14 @@ struct RecurrencePicker: View {
         Surface {
           VStack(spacing: 0) {
             ForEach(presets, id: \.0) { key, value in
-              Button {
+              SelectionRow(title: text(key), isSelected: recurrence == value) {
                 recurrence = value
                 dismiss()
-              } label: {
-                HStack {
-                  Text(text(key)).foregroundStyle(Theme.ink)
-                  Spacer()
-                  if recurrence == value {
-                    Image(systemName: "checkmark").foregroundStyle(Theme.accent)
-                  }
-                }.padding(18).frame(minHeight: 54)
-              }.buttonStyle(.plain).accessibilityIdentifier(key)
+              }.accessibilityIdentifier(key)
               if key != "repeat.monthly" { Divider().overlay(Theme.line).padding(.leading, 18) }
             }
           }
+          .clipShape(RoundedRectangle(cornerRadius: Theme.corner))
         }
         VStack(alignment: .leading, spacing: 16) {
           Toggle(text("repeat.custom"), isOn: $custom).font(.body.weight(.medium))

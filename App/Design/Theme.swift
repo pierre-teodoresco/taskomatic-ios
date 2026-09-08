@@ -44,6 +44,33 @@ struct PrimaryButton: View {
   }
 }
 
+struct SelectionRow: View {
+  let title: String
+  let isSelected: Bool
+  var action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      HStack(spacing: 12) {
+        Text(title)
+          .font(.body.weight(isSelected ? .medium : .regular))
+        Spacer(minLength: 12)
+        Image(systemName: "checkmark")
+          .font(.body.weight(.semibold))
+          .opacity(isSelected ? 1 : 0)
+          .accessibilityHidden(true)
+      }
+      .foregroundStyle(isSelected ? Theme.accent : Theme.ink)
+      .padding(18)
+      .frame(maxWidth: .infinity, minHeight: 54)
+      .background(isSelected ? Theme.accentSoft : Color.clear)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityAddTraits(isSelected ? .isSelected : [])
+  }
+}
+
 struct IconButton: View {
   let symbol: String
   let label: String

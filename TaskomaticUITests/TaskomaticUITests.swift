@@ -93,6 +93,42 @@ final class TaskomaticUITests: XCTestCase {
   }
 
   @MainActor
+  func testRecurrenceCanBeSelectedAcrossTheEntireRow() throws {
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--ui-testing", "--reset-test-store", "-AppleLanguages", "(fr)", "-AppleLocale", "fr_FR",
+    ]
+    app.launch()
+    app.buttons["newTaskDetails"].tap()
+    app.buttons["editRecurrence"].tap()
+    let weekly = app.buttons["repeat.weekly"]
+    XCTAssertTrue(weekly.waitForExistence(timeout: 5))
+    // Hit the empty trailing portion of the card, independently of the label's bounds.
+    app.coordinate(withNormalizedOffset: .zero)
+      .withOffset(CGVector(dx: app.frame.maxX - 32, dy: weekly.frame.midY)).tap()
+    XCTAssertTrue(app.buttons["editRecurrence"].waitForExistence(timeout: 3))
+
+    app.buttons["editRecurrence"].tap()
+    XCTAssertTrue(weekly.waitForExistence(timeout: 3))
+    XCTAssertTrue(weekly.isSelected)
+    XCTAssertFalse(app.buttons["repeat.monthly"].isSelected)
+    let attachment = XCTAttachment(screenshot: app.screenshot())
+    attachment.name = "Selected recurrence uses the accent color"
+    attachment.lifetime = .keepAlways
+    add(attachment)
+
+    // The leading padding of another option is also part of its touch target.
+    let monthly = app.buttons["repeat.monthly"]
+    app.coordinate(withNormalizedOffset: .zero)
+      .withOffset(CGVector(dx: 28, dy: monthly.frame.midY)).tap()
+    XCTAssertTrue(app.buttons["editRecurrence"].waitForExistence(timeout: 3))
+    app.buttons["editRecurrence"].tap()
+    XCTAssertTrue(monthly.waitForExistence(timeout: 3))
+    XCTAssertTrue(monthly.isSelected)
+    XCTAssertFalse(weekly.isSelected)
+  }
+
+  @MainActor
   func testLanguageAndAppearanceCanBeChanged() throws {
     let app = XCUIApplication()
     app.launchArguments = [
