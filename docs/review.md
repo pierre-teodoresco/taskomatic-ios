@@ -32,3 +32,7 @@ A user reported that repeated theme changes updated the home screen while the op
 The independent reviewer approved the revised fix and requested that System restoration start from the opposite explicit mode, so the test requires a visible transition under either system appearance. That improvement is included. The repeated-toggle/System test and existing language/appearance persistence test passed on iPhone 17 / iOS 26.5; captured light and dark sheet renders were inspected.
 
 The same regression test passed on iPhone SE / iOS 18.2 with the system set to dark, covering restoration in both directions. The signed Local configuration built successfully and the updated application was installed on the connected iPhone.
+
+## Quick-add keyboard dismissal
+
+A failing UI test reproduced the keyboard staying open when the page above quick add was tapped. The page scroll view now clears only quick-add focus through a simultaneous tap gesture, preserving the draft and allowing existing controls to act. The composer is outside the gesture area. The regression test verifies dismissal without insertion, draft retention, resumed typing, filter interaction, and one explicit task insertion. This test and the existing task lifecycle and recurring-task UI tests passed on iPhone 17 / iOS 26.5. The independent review reported no actionable findings.

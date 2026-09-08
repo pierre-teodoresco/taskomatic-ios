@@ -2,7 +2,7 @@
 
 ## Product rules
 
-Tasks have a title and optional note, with no deadline. A simple completed task is archived and can be restored. A recurring task is active immediately on creation. Completing it records the completion instant; its next activation is the start of the local calendar day N days, weeks, or calendar months later. Month-end dates clamp to the last valid day. Missed cycles never accumulate.
+Tasks have a title and optional note, with no deadline. Tapping the page above quick add dismisses the keyboard and preserves the current draft; only explicit submission creates a task. A simple completed task is archived and can be restored. A recurring task is active immediately on creation. Completing it records the completion instant; its next activation is the start of the local calendar day N days, weeks, or calendar months later. Month-end dates clamp to the last valid day. Missed cycles never accumulate.
 
 Activity is derived from persisted completion and recurrence values when queried, rather than requiring a background mutation at midnight. A task remains active until explicitly completed. Recurring tasks retain the latest completion, not a completion journal.
 

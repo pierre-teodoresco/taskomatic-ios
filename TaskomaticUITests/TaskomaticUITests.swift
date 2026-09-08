@@ -28,6 +28,43 @@ final class TaskomaticUITests: XCTestCase {
   }
 
   @MainActor
+  func testTappingThePageDismissesQuickAddKeyboardAndKeepsTheDraft() throws {
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--ui-testing", "--reset-test-store", "-AppleLanguages", "(fr)", "-AppleLocale", "fr_FR",
+    ]
+    app.launch()
+    let quickAdd = app.textFields["quickAdd"]
+    XCTAssertTrue(quickAdd.waitForExistence(timeout: 10))
+    quickAdd.tap()
+    quickAdd.typeText("Préparer le voyage")
+    XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
+
+    // Touch the page gutter immediately above the composer, outside any control.
+    app.coordinate(withNormalizedOffset: .zero)
+      .withOffset(CGVector(dx: 12, dy: quickAdd.frame.minY - 40)).tap()
+    XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3))
+    XCTAssertEqual(quickAdd.value as? String, "Préparer le voyage")
+    XCTAssertFalse(app.buttons["taskTitle.Préparer le voyage"].exists)
+
+    quickAdd.tap()
+    XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
+    quickAdd.typeText(" cet été")
+    // Page controls must still work while dismissing the keyboard.
+    app.buttons["filter.completed"].tap()
+    XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3))
+    XCTAssertTrue(app.buttons["filter.completed"].isSelected)
+    XCTAssertEqual(quickAdd.value as? String, "Préparer le voyage cet été")
+    app.buttons["filter.active"].tap()
+    XCTAssertFalse(app.buttons["taskTitle.Préparer le voyage cet été"].exists)
+
+    app.buttons["quickAddSubmit"].tap()
+    XCTAssertTrue(app.buttons["taskTitle.Préparer le voyage cet été"].waitForExistence(timeout: 3))
+    XCTAssertEqual(
+      app.buttons.matching(identifier: "taskTitle.Préparer le voyage cet été").count, 1)
+  }
+
+  @MainActor
   func testRecurringTaskCanBeEditedAndWaitsAfterCompletion() throws {
     let app = XCUIApplication()
     app.launchArguments = [

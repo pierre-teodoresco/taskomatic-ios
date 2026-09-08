@@ -78,6 +78,8 @@ struct HomeView: View {
         .padding(.bottom, 28)
       }
       .scrollDismissesKeyboard(.interactively)
+      .contentShape(Rectangle())
+      .simultaneousGesture(TapGesture().onEnded { quickFocused = false })
     }
     .background(Theme.canvas)
     .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
