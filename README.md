@@ -6,7 +6,7 @@ Taskomatic est une app iPhone native pour gérer ses tâches personnelles sans d
 
 L’interface privilégie l’ajout rapide, une liste lisible et peu de décisions à prendre. Elle propose une palette indigo, un thème clair et sombre, et des retours haptiques discrets.
 
-**État du projet :** version de développement 1.1.0, utilisable sur iPhone. Le stockage local et les sauvegardes manuelles sont implémentés. L’intégration CloudKit est présente, mais sa synchronisation réelle reste à valider avec une équipe Apple disposant des capacités nécessaires. Le dépôt est actuellement géré localement, sans remote ni CI distante.
+**État du projet :** version de développement 1.1.0, utilisable sur iPhone. Le stockage local et les sauvegardes manuelles sont implémentés. L’intégration CloudKit est présente, mais sa synchronisation réelle reste à valider avec une équipe Apple disposant des capacités nécessaires. Le code est hébergé sur [GitHub](https://github.com/pierre-teodoresco/taskomatic-ios), avec les branches `dev` et `main` protégées. Aucune CI distante n’est encore configurée.
 
 [Démarrage](#démarrage-sur-simulateur) · [Installation iPhone](#installer-sur-un-iphone) · [Architecture](#architecture-et-organisation) · [Sauvegardes et iCloud](#données-sauvegardes-et-icloud) · [Tests](#tests-et-vérification) · [Publication](#préparer-une-publication) · [Licence](#licence)
 
@@ -40,6 +40,13 @@ Il n’y a **aucune dépendance tierce à l’exécution**, aucun serveur à lan
 La version 1.1 a été vérifiée avec Xcode 26.6, Swift 6.3.3 et XcodeGen 2.46.0, sur les simulateurs iPhone 17 / iOS 26.5 et iPhone SE / iOS 18.2.
 
 ## Démarrage sur simulateur
+
+Récupérer le dépôt avec une connexion SSH GitHub configurée :
+
+```sh
+git clone git@github.com:pierre-teodoresco/taskomatic-ios.git
+cd taskomatic-ios
+```
 
 Depuis la racine du dépôt :
 
@@ -230,6 +237,8 @@ Pour la version 1.1, **17 tests de domaine, 9 tests de stockage/file de notifica
 
 ## Modifier le projet
 
+Créer les branches de travail depuis `dev` et ouvrir les PR vers `dev`. La promotion vers `main` passe par une PR. Pierre est le code owner de l’ensemble du dépôt ; il garde l’accès direct à `dev` et la décision de fusion. Les modalités de revue, l’exception nécessaire pour ses propres PR et l’usage de GitHub Desktop sont décrits dans [le workflow GitHub](docs/git-workflow.md).
+
 Lire [AGENTS.md](AGENTS.md) et les documents du domaine concerné avant une modification. Garder les règles métier dans le package, les adaptations système dans `App/Core` et les composants visuels réutilisables dans `App/Design`.
 
 - Utiliser les couleurs sémantiques de `Theme` et les contrôles communs pour conserver une apparence cohérente.
@@ -296,6 +305,7 @@ Archiver avec le schéma **Taskomatic**, configuration **Release**. La configura
 - [Développement](docs/development.md) : simulateur, signature, appareil physique et intégration iCloud.
 - [Revues et validation](docs/review.md) : corrections, tests effectués et limites connues.
 - [Conventions du dépôt](AGENTS.md) : responsabilités des composants et processus de vérification.
+- [Workflow GitHub](docs/git-workflow.md) : branches, droits, revues et protections versionnées.
 
 ## Licence
 

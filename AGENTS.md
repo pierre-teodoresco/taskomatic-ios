@@ -1,6 +1,6 @@
 # Working on Taskomatic
 
-Native SwiftUI iPhone app. Keep the repository local; commit reviewed work without adding a remote.
+Native SwiftUI iPhone app. GitHub remote: `pierre-teodoresco/taskomatic-ios`. Develop from `dev`; use feature branches and PRs by default. Changes to `main` go through a PR.
 
 ## Boundaries
 
@@ -14,5 +14,7 @@ Native SwiftUI iPhone app. Keep the repository local; commit reviewed work witho
 The user delegated test decisions. Test the public task lifecycle and reminder plan with fixed, independently specified dates; use the simulator to verify creation, editing, completion, restoration, settings, and persistence. Follow one failing behavioral test with its implementation before adding the next case.
 
 Read `docs/architecture.md` when changing persistence, backup import/export, recurrence, scheduling, or notification actions. Read `docs/development.md` for build, simulator, signing, and device commands once those workflows are established.
+
+Read `docs/git-workflow.md` before pushing, opening or merging PRs, or changing GitHub permissions, CODEOWNERS or rulesets. Pierre retains human approval and merge decisions unless he explicitly delegates them; his direct-push exception on `dev` is not the default agent workflow.
 
 Before committing, request an independent code review, address actionable findings, rerun affected checks, and obtain a follow-up review. Never commit signing credentials, provisioning profiles, simulator artifacts, or personal task data.
