@@ -29,3 +29,5 @@ Foreground, significant time changes, successful mutations, and remote changes r
 ## Visual direction
 
 Restrained, contemporary interface: off-white and slate, indigo accent, graphite dark appearance, precise type hierarchy, quiet surfaces, concise motion, and subtle haptics. Mobbin references: Things 3 (724087de-2e95-47ec-926c-efbdab249a23) and Linear Mobile (30ebc468-06c8-46dd-9503-e197e89a1e5c). These references inform layout, not copied assets.
+
+The main window resolves the user's light/dark/system preference. The settings sheet receives the window's resolved `colorScheme` explicitly, so changes reach an already-open presentation. Forwarding a nullable preference to the sheet left System restoration stale on iOS 26.5; keep the presentation's identity and state while updating the resolved scheme.

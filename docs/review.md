@@ -24,3 +24,11 @@ The final independent review reported no remaining actionable findings. The revi
 The recurring-task UI test also exposed a save button hidden by the keyboard. Moving Save into the navigation toolbar resolved the regression; the full UI suite then passed.
 
 The final visual pass on iPhone SE (iOS 18.2) at accessibility-extra-extra-large text exposed a wrapped filter label. The filter control now uses a vertical layout at accessibility sizes, with explicit 44-point touch areas. The independent reviewer approved this delta; the small-screen build, screenshot verification, and creation/completion/restoration/relaunch UI test passed. The signed Local build was rebuilt and reinstalled after this change.
+
+## Settings appearance regression
+
+A user reported that repeated theme changes updated the home screen while the open settings sheet retained its previous appearance. A UI regression test reproduced this by measuring the rendered sheet gutter: Clair was selected but the sheet remained dark. The fix forwards the presenting window's resolved color scheme into the settings presentation. It also handles returning to System without recreating the sheet.
+
+The independent reviewer approved the revised fix and requested that System restoration start from the opposite explicit mode, so the test requires a visible transition under either system appearance. That improvement is included. The repeated-toggle/System test and existing language/appearance persistence test passed on iPhone 17 / iOS 26.5; captured light and dark sheet renders were inspected.
+
+The same regression test passed on iPhone SE / iOS 18.2 with the system set to dark, covering restoration in both directions. The signed Local configuration built successfully and the updated application was installed on the connected iPhone.

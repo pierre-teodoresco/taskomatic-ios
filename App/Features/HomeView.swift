@@ -6,6 +6,7 @@ struct HomeView: View {
   @Environment(AppSettings.self) private var settings
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+  @Environment(\.colorScheme) private var colorScheme
   @State private var completedFilter = false
   @State private var waitingExpanded = true
   @State private var quickTitle = ""
@@ -83,7 +84,10 @@ struct HomeView: View {
     .sheet(item: $editor) { presentation in
       TaskEditorView(item: presentation.item, initialTitle: presentation.initialTitle)
     }
-    .sheet(isPresented: $settingsPresented) { SettingsView() }
+    .sheet(isPresented: $settingsPresented) {
+      // Forward the window's resolved appearance, including System, to this presentation.
+      SettingsView().preferredColorScheme(colorScheme)
+    }
     .sensoryFeedback(.success, trigger: completionCount)
     .alert(
       text("error.title"),

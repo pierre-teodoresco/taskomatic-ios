@@ -81,6 +81,65 @@ final class TaskomaticUITests: XCTestCase {
   }
 
   @MainActor
+  func testSettingsThemeChangesRepeatedlyWithoutClosingTheSheet() throws {
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--ui-testing", "--reset-test-store", "-AppleLanguages", "(fr)", "-AppleLocale", "fr_FR",
+    ]
+    app.launch()
+    app.buttons["openSettings"].tap()
+    let systemBrightness = try XCTUnwrap(settingsBackgroundBrightness(in: app))
+    app.buttons["Sombre"].tap()
+    app.buttons["closeSettings"].tap()
+    app.buttons["openSettings"].tap()
+
+    let changes = [
+      ("Clair", false), ("Sombre", true), ("Clair", false), ("Sombre", true),
+      (systemBrightness < 0.5 ? "Clair" : "Sombre", systemBrightness >= 0.5),
+      ("Système", systemBrightness < 0.5),
+    ]
+    for (label, dark) in changes {
+      app.segmentedControls["appearancePicker"].buttons[label].tap()
+      let appearanceChanged = XCTNSPredicateExpectation(
+        predicate: NSPredicate { _, _ in
+          guard let brightness = self.settingsBackgroundBrightness(in: app) else { return false }
+          return dark ? brightness < 0.25 : brightness > 0.75
+        }, object: nil)
+      let result = XCTWaiter.wait(for: [appearanceChanged], timeout: 5)
+      let attachment = XCTAttachment(screenshot: app.screenshot())
+      attachment.name = "Settings after selecting \(label)"
+      attachment.lifetime = .keepAlways
+      add(attachment)
+      XCTAssertEqual(result, .completed, "The open settings sheet must immediately become \(label)")
+      XCTAssertTrue(app.buttons["closeSettings"].exists)
+    }
+  }
+
+  @MainActor
+  private func settingsBackgroundBrightness(in app: XCUIApplication) -> Double? {
+    // Sample the visible sheet gutter, outside cards and text. Assert the rendered
+    // appearance rather than the saved preference or selected segment.
+    guard let image = app.screenshot().image.cgImage,
+      let pixel = image.cropping(
+        to: CGRect(
+          x: CGFloat(image.width) * 0.03, y: CGFloat(image.height) * 0.5, width: 1, height: 1))
+    else { return nil }
+    var rgba = [UInt8](repeating: 0, count: 4)
+    let sampled = rgba.withUnsafeMutableBytes { bytes in
+      guard
+        let context = CGContext(
+          data: bytes.baseAddress, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+          space: CGColorSpaceCreateDeviceRGB(),
+          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+      else { return false }
+      context.draw(pixel, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+      return true
+    }
+    guard sampled else { return nil }
+    return (Double(rgba[0]) + Double(rgba[1]) + Double(rgba[2])) / (3 * 255)
+  }
+
+  @MainActor
   func testLocalNotificationArrivesWhileTheAppIsInTheBackground() throws {
     let app = XCUIApplication()
     app.launchArguments = [
