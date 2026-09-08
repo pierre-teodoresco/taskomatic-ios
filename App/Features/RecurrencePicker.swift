@@ -40,6 +40,7 @@ struct RecurrencePicker: View {
             Stepper(value: $interval, in: 1...99) {
               Text("\(text("repeat.every")) \(interval)").monospacedDigit()
             }.accessibilityIdentifier("recurrenceInterval")
+              .sensoryFeedback(.selection, trigger: interval)
             Picker(text("repeat.interval"), selection: $unit) {
               ForEach(Recurrence.Unit.allCases, id: \.self) { unit in
                 Text(text("repeat.\(unit.rawValue)")).tag(unit)
