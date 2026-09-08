@@ -13,6 +13,7 @@ struct HomeView: View {
   @State private var editor: EditorPresentation?
   @State private var settingsPresented = false
   @State private var undoneItem: CompletionUndo?
+  @State private var undoFailed = false
   @State private var completionCount = 0
   @FocusState private var quickFocused: Bool
 
@@ -61,7 +62,7 @@ struct HomeView: View {
                     Spacer()
                     Image(systemName: waitingExpanded ? "chevron.up" : "chevron.down")
                       .font(.caption.weight(.semibold)).foregroundStyle(Theme.secondary)
-                  }.frame(minHeight: 44)
+                  }.frame(minHeight: 44).contentShape(Rectangle())
                 }.buttonStyle(.plain)
                 if waitingExpanded { taskList(waiting, state: .waiting) }
               }
@@ -84,7 +85,10 @@ struct HomeView: View {
     .background(Theme.canvas)
     .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
     .sheet(item: $editor) { presentation in
-      TaskEditorView(item: presentation.item, initialTitle: presentation.initialTitle)
+      TaskEditorView(item: presentation.item, initialTitle: presentation.initialTitle) {
+        quickTitle = ""
+        completedFilter = false
+      }
     }
     .sheet(isPresented: $settingsPresented) {
       // Forward the window's resolved appearance, including System, to this presentation.
@@ -97,7 +101,10 @@ struct HomeView: View {
     ) {
       Button(text("done")) { store.error = nil }
     } message: {
-      Text(text("error.save"))
+      Text(
+        text(
+          store.error as? TaskStore.StoreError == .refreshAfterSave
+            ? "error.refreshAfterSave" : "error.save"))
     }
   }
 
@@ -210,14 +217,20 @@ struct HomeView: View {
             .font(.subheadline).foregroundStyle(Theme.ink)
           Spacer()
           Button(text("undo.action")) {
-            store.perform { try store.undoCompletion(undoneItem) }
-            self.undoneItem = nil
+            do {
+              try store.undoCompletion(undoneItem)
+              self.undoneItem = nil
+              undoFailed = false
+            } catch {
+              undoFailed = true
+              store.error = error
+            }
           }.font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
         }
         .padding(16).background(Theme.surface, in: RoundedRectangle(cornerRadius: 16))
         .task(id: undoneItem.id) {
           try? await Task.sleep(for: .seconds(6))
-          guard !Task.isCancelled else { return }
+          guard !Task.isCancelled, !undoFailed else { return }
           withAnimation(animation) { self.undoneItem = nil }
         }
       }
@@ -225,7 +238,6 @@ struct HomeView: View {
         Button {
           quickFocused = false
           editor = EditorPresentation(initialTitle: quickTitle)
-          quickTitle = ""
         } label: {
           Image(systemName: "plus").font(.system(size: 20, weight: .medium))
             .foregroundStyle(Theme.accent).frame(width: 44, height: 48)
@@ -239,7 +251,7 @@ struct HomeView: View {
         if !quickTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
           Button(action: addQuickTask) {
             Image(systemName: "arrow.up").font(.system(size: 17, weight: .semibold))
-              .foregroundStyle(.white).frame(width: 38, height: 38)
+              .foregroundStyle(Theme.onAccent).frame(width: 38, height: 38)
               .background(Theme.accent, in: RoundedRectangle(cornerRadius: 12))
               .frame(width: 44, height: 48)
               .contentShape(Rectangle())
@@ -291,6 +303,7 @@ struct HomeView: View {
       store.perform {
         if state == .active {
           if let undo = try store.complete(id: item.id, expectedCycle: item.cycleToken) {
+            undoFailed = false
             undoneItem = undo
             completionCount += 1
           }

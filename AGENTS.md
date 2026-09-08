@@ -13,6 +13,6 @@ Native SwiftUI iPhone app. Keep the repository local; commit reviewed work witho
 
 The user delegated test decisions. Test the public task lifecycle and reminder plan with fixed, independently specified dates; use the simulator to verify creation, editing, completion, restoration, settings, and persistence. Follow one failing behavioral test with its implementation before adding the next case.
 
-Read `docs/architecture.md` when changing persistence, recurrence, scheduling, or notification actions. Read `docs/development.md` for build, simulator, signing, and device commands once those workflows are established.
+Read `docs/architecture.md` when changing persistence, backup import/export, recurrence, scheduling, or notification actions. Read `docs/development.md` for build, simulator, signing, and device commands once those workflows are established.
 
 Before committing, request an independent code review, address actionable findings, rerun affected checks, and obtain a follow-up review. Never commit signing credentials, provisioning profiles, simulator artifacts, or personal task data.

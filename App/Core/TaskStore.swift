@@ -22,6 +22,41 @@ final class TaskStore {
     revision += 1
   }
 
+  func exportBackup() throws -> Data {
+    let context = ModelContext(container)
+    let current = try context.fetch(
+      FetchDescriptor<TaskRecord>(sortBy: [SortDescriptor(\.createdAt)])
+    )
+    .map(\.item)
+    return try TaskBackup(items: current).encoded()
+  }
+
+  /// Restores only missing IDs. Re-read at confirmation time; a preview may be stale.
+  @discardableResult
+  func restoreBackup(_ backup: TaskBackup) throws -> Int {
+    let context = ModelContext(container)
+    context.autosaveEnabled = false
+    let existing = Set(try context.fetch(FetchDescriptor<TaskRecord>()).map(\.id))
+    let missing = backup.items.filter { !existing.contains($0.id) }
+    for item in missing {
+      let restored = TaskItem(
+        id: item.id, title: item.title, note: item.note, createdAt: item.createdAt,
+        completedAt: item.completedAt, recurrence: item.recurrence)
+      context.insert(TaskRecord(item: restored))
+    }
+    try commit(context)
+    return missing.count
+  }
+
+  private func commit(_ context: ModelContext) throws {
+    do { try context.save() } catch {
+      context.rollback()
+      throw error
+    }
+    // Persistence already succeeded. A refresh failure must not invite a duplicate insertion.
+    do { try reload() } catch { self.error = StoreError.refreshAfterSave }
+  }
+
   @discardableResult
   func add(title: String, note: String = "", recurrence: Recurrence? = nil) throws -> UUID {
     let title = title.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -32,12 +67,13 @@ final class TaskStore {
     let context = ModelContext(container)
     context.autosaveEnabled = false
     context.insert(TaskRecord(item: item))
-    try context.save()
-    try reload()
+    try commit(context)
     return item.id
   }
 
-  func edit(original: TaskItem, title: String, note: String, recurrence: Recurrence?) throws {
+  func edit(
+    original: TaskItem, title: String, note: String, recurrence: Recurrence?, at date: Date = .now
+  ) throws {
     let title = title.trimmingCharacters(in: .whitespacesAndNewlines)
     let note = note.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !title.isEmpty else { throw StoreError.emptyTitle }
@@ -49,11 +85,15 @@ final class TaskStore {
     if title != original.title { record.title = title }
     if note != original.note { record.note = note }
     if recurrence != original.recurrence {
+      if record.completedAt != nil && record.item.isActive(at: date, calendar: .current) {
+        // Editing the cadence must not complete or postpone an already-active cycle.
+        record.completedAt = nil
+        record.cycleID = UUID()
+      }
       record.recurrenceInterval = recurrence?.interval ?? 1
       record.recurrenceUnit = recurrence?.unit.rawValue
     }
-    try context.save()
-    try reload()
+    try commit(context)
   }
 
   @discardableResult
@@ -72,8 +112,7 @@ final class TaskStore {
     record.cycleID = UUID()
     let undo = CompletionUndo(
       taskID: id, appliedCycleID: record.cycleID, previousCompletedAt: previous)
-    try context.save()
-    try reload()
+    try commit(context)
     return undo
   }
 
@@ -84,7 +123,8 @@ final class TaskStore {
     if record.item.cycleToken == expectedCycle {
       record.completedAt = nil
       record.cycleID = UUID()
-      try context.save()
+      try commit(context)
+      return
     }
     try reload()
   }
@@ -96,7 +136,8 @@ final class TaskStore {
     if record.cycleID == undo.appliedCycleID {
       record.completedAt = undo.previousCompletedAt
       record.cycleID = UUID()
-      try context.save()
+      try commit(context)
+      return
     }
     try reload()
   }
@@ -112,8 +153,7 @@ final class TaskStore {
     context.autosaveEnabled = false
     let descriptor = FetchDescriptor<TaskRecord>(predicate: #Predicate { $0.id == id })
     for record in try context.fetch(descriptor) { context.delete(record) }
-    try context.save()
-    try reload()
+    try commit(context)
   }
 
   func perform(_ operation: () throws -> Void) {
@@ -121,7 +161,7 @@ final class TaskStore {
   }
 
   enum StoreError: Error {
-    case emptyTitle, missingTask
+    case emptyTitle, missingTask, refreshAfterSave
   }
 }
 

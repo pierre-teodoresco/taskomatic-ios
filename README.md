@@ -9,6 +9,7 @@ Une app iPhone de tâches personnelles, en SwiftUI. Écris une tâche, puis gard
 - Archive des tâches simples et liste des récurrentes en attente.
 - Français, anglais, thème clair/sombre/système, Dynamic Type et VoiceOver.
 - SwiftData local et configuration CloudKit privée.
+- Sauvegarde exportable dans Fichiers/iCloud Drive et restauration des tâches manquantes, sans écraser les tâches actuelles.
 
 ## Ouvrir et tester
 
@@ -24,6 +25,8 @@ Le schéma **Taskomatic** comprend les tests du stockage et de l’interface. Le
 ## iPhone et iCloud
 
 **TaskomaticLocal**, configuration **Local**, permet l’installation avec une équipe personnelle Xcode. Cette configuration conserve les tâches sur l’iPhone. La signature gratuite doit être renouvelée périodiquement.
+
+Dans **Réglages → Sauvegarde**, « Exporter une sauvegarde » crée une copie de toutes les tâches, notes et récurrences. Choisir **iCloud Drive** dans Fichiers pour conserver cette copie dans iCloud. « Restaurer une sauvegarde » propose un aperçu puis ajoute seulement les tâches absentes ; les tâches déjà présentes et les réglages de rappel sont conservés. Cette sauvegarde est manuelle. Fichiers gère l’envoi du fichier au fournisseur choisi ; l’app confirme l’export, pas son téléversement distant.
 
 **Taskomatic**, configurations **Debug/Release**, contient l’intégration iCloud. Elle exige une équipe Apple Developer payante et le conteneur CloudKit configuré. Le compte actuellement disponible a été refusé par Apple pour les capacités iCloud et Push Notifications ; la synchronisation réelle reste donc à valider après activation du compte. Les deux configurations utilisent le même identifiant d’app et le même emplacement de stockage sur l’iPhone.
 

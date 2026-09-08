@@ -11,10 +11,12 @@
 		211763DA6035BD3B2CC46808 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F7D8F5365188717FEC18867A /* Assets.xcassets */; };
 		2D62A8A14BD9815765A053F6 /* TaskRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6137C0A86E6F33D348F00972 /* TaskRecord.swift */; };
 		34DA56BC9ECA135375F5A1EC /* TaskEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8019F298B24873B229A2F5AD /* TaskEditorView.swift */; };
+		5B048519D4ECD8DA99C83A40 /* BackupSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7926E5CDC32AE17784C5C675 /* BackupSettingsSection.swift */; };
 		5DE11931D738CC4E03E8DA7B /* TaskRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F130C6009FC7EA79636E2CE /* TaskRow.swift */; };
 		60A406BA04FC54656D1DDF73 /* AppRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8A4899E52A1A8C2A3E94238 /* AppRuntime.swift */; };
 		6C92060485B2B5CDA3AD4B5D /* TaskomaticCore in Frameworks */ = {isa = PBXBuildFile; productRef = 97FA1B081FA6925F562D5750 /* TaskomaticCore */; };
 		6D4851E8247336FD99100745 /* TaskomaticUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2A9172D460E0F2E72539C5 /* TaskomaticUITests.swift */; };
+		780EBA4572ED213EB635C0FF /* BackupDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE21148B36455889FB0BAC8 /* BackupDocument.swift */; };
 		7A7DFC85ACE989409BF4D996 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 21F6F5FFF6EC24E220FFEC03 /* PrivacyInfo.xcprivacy */; };
 		7D459DEF5E8376FE85287C8B /* TaskomaticApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BF8FE51E3C7EE395A528EB1 /* TaskomaticApp.swift */; };
 		80B7E5E55975F9B2C4C99EFB /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC3ACFEB59ADC2909219C2FC /* SettingsView.swift */; };
@@ -61,6 +63,7 @@
 		6F130C6009FC7EA79636E2CE /* TaskRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRow.swift; sourceTree = "<group>"; };
 		6F5B8923751362A0D4A66102 /* RecurrencePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecurrencePicker.swift; sourceTree = "<group>"; };
 		760D544345DC9411E469DC86 /* Taskomatic.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Taskomatic.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7926E5CDC32AE17784C5C675 /* BackupSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupSettingsSection.swift; sourceTree = "<group>"; };
 		7B2A9172D460E0F2E72539C5 /* TaskomaticUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskomaticUITests.swift; sourceTree = "<group>"; };
 		8019F298B24873B229A2F5AD /* TaskEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskEditorView.swift; sourceTree = "<group>"; };
 		A4C4557D28A0C645D4C973F9 /* TaskStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskStoreTests.swift; sourceTree = "<group>"; };
@@ -73,6 +76,7 @@
 		E0E5B5467E8BD9CB91642076 /* TaskomaticUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TaskomaticUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E73A462D3DCA26FF6596AB2B /* taskomatic */ = {isa = PBXFileReference; lastKnownFileType = folder; name = taskomatic; path = .; sourceTree = SOURCE_ROOT; };
 		EBD4D15E33607F21FF2DBA87 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		EBE21148B36455889FB0BAC8 /* BackupDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupDocument.swift; sourceTree = "<group>"; };
 		F7D8F5365188717FEC18867A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F92D145E586B1F4BF5209505 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -157,6 +161,7 @@
 		EC34BE7F0021EDA2679574B4 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				7926E5CDC32AE17784C5C675 /* BackupSettingsSection.swift */,
 				104344F3A06D56A8F4680D62 /* HomeView.swift */,
 				6F5B8923751362A0D4A66102 /* RecurrencePicker.swift */,
 				CC3ACFEB59ADC2909219C2FC /* SettingsView.swift */,
@@ -184,6 +189,7 @@
 				C8A4899E52A1A8C2A3E94238 /* AppRuntime.swift */,
 				F92D145E586B1F4BF5209505 /* AppSettings.swift */,
 				DC6C5506E97B004855A15A47 /* AppStrings.swift */,
+				EBE21148B36455889FB0BAC8 /* BackupDocument.swift */,
 				4D1713208C42A327D3AF73DE /* NotificationQueue.swift */,
 				EBD4D15E33607F21FF2DBA87 /* NotificationService.swift */,
 				6137C0A86E6F33D348F00972 /* TaskRecord.swift */,
@@ -322,6 +328,8 @@
 				60A406BA04FC54656D1DDF73 /* AppRuntime.swift in Sources */,
 				B66CAAF4DC279F3AC7B24C21 /* AppSettings.swift in Sources */,
 				8B6BBE9B57E0AB16628A41F6 /* AppStrings.swift in Sources */,
+				780EBA4572ED213EB635C0FF /* BackupDocument.swift in Sources */,
+				5B048519D4ECD8DA99C83A40 /* BackupSettingsSection.swift in Sources */,
 				D8AA172DE1F2C6F05B0D6595 /* HomeView.swift in Sources */,
 				B8A65449BD5BDD574942E0CA /* NotificationQueue.swift in Sources */,
 				08E632F2C95140BAE0966515 /* NotificationService.swift in Sources */,
@@ -489,7 +497,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = JHN7TLUQWR;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -509,7 +517,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -557,7 +565,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = JHN7TLUQWR;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -577,7 +585,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -693,7 +701,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = JHN7TLUQWR;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -707,7 +715,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

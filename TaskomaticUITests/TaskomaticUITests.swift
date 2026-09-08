@@ -93,6 +93,125 @@ final class TaskomaticUITests: XCTestCase {
   }
 
   @MainActor
+  func testEditorDiscardAndDeletionRequireExplicitChoices() throws {
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--ui-testing", "--reset-test-store", "-AppleLanguages", "(fr)", "-AppleLocale", "fr_FR",
+    ]
+    app.launch()
+    let quick = app.textFields["quickAdd"]
+    XCTAssertTrue(quick.waitForExistence(timeout: 5))
+    quick.tap()
+    quick.typeText("À conserver")
+    app.buttons["quickAddSubmit"].tap()
+    app.buttons["taskTitle.À conserver"].tap()
+    let title = app.descendants(matching: .any)["editorTitle"].firstMatch
+    title.tap()
+    title.typeText(" modifiée")
+    app.buttons["Annuler"].tap()
+    app.buttons["Abandonner"].tap()
+    XCTAssertTrue(app.buttons["taskTitle.À conserver"].waitForExistence(timeout: 3))
+    XCTAssertFalse(app.buttons["taskTitle.À conserver modifiée"].exists)
+    app.buttons["taskTitle.À conserver"].tap()
+    app.buttons["deleteTask"].tap()
+    XCTAssertTrue(app.buttons["Supprimer"].waitForExistence(timeout: 3))
+    let cancel = app.sheets.buttons["Annuler"].firstMatch
+    if cancel.exists {
+      cancel.tap()
+    } else {
+      // iOS 26 presents this as a popover; tapping outside is its native cancellation.
+      app.coordinate(withNormalizedOffset: CGVector(dx: 0.03, dy: 0.20)).tap()
+    }
+    XCTAssertTrue(app.buttons["Supprimer"].waitForNonExistence(timeout: 3))
+    app.buttons["saveTask"].tap()
+    XCTAssertTrue(app.buttons["taskTitle.À conserver"].waitForExistence(timeout: 3))
+    app.buttons["taskTitle.À conserver"].tap()
+    app.buttons["deleteTask"].tap()
+    app.buttons["Supprimer"].tap()
+    XCTAssertTrue(app.textFields["quickAdd"].waitForExistence(timeout: 3))
+    app.terminate()
+    app.launchArguments.removeAll { $0 == "--reset-test-store" }
+    app.launch()
+    XCTAssertTrue(app.textFields["quickAdd"].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.buttons["taskTitle.À conserver"].exists)
+  }
+
+  @MainActor
+  func testCustomRecurrenceCanBeAdjustedAndSaved() throws {
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--ui-testing", "--reset-test-store", "-AppleLanguages", "(fr)", "-AppleLocale", "fr_FR",
+    ]
+    app.launch()
+    app.buttons["newTaskDetails"].tap()
+    let title = app.descendants(matching: .any)["editorTitle"].firstMatch
+    XCTAssertTrue(title.waitForExistence(timeout: 5))
+    title.tap()
+    title.typeText("Nettoyer les filtres")
+    app.buttons["editRecurrence"].tap()
+    app.switches["customRecurrence"].tap()
+    let stepper = app.steppers["recurrenceInterval"]
+    XCTAssertTrue(stepper.waitForExistence(timeout: 3))
+    stepper.buttons["recurrenceInterval-Increment"].tap()
+    stepper.buttons["recurrenceInterval-Increment"].tap()
+    stepper.buttons["recurrenceInterval-Decrement"].tap()
+    app.segmentedControls["recurrenceUnit"].buttons["mois"].tap()
+    XCTAssertTrue(stepper.label.contains("Tous les 2 mois"), stepper.debugDescription)
+    app.buttons["OK"].tap()
+    app.buttons["saveTask"].tap()
+    XCTAssertTrue(app.buttons["taskTitle.Nettoyer les filtres"].waitForExistence(timeout: 3))
+    app.terminate()
+    app.launchArguments.removeAll { $0 == "--reset-test-store" }
+    app.launch()
+    XCTAssertTrue(app.buttons["taskTitle.Nettoyer les filtres"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.buttons["taskTitle.Nettoyer les filtres"].label.contains("Tous les 2 mois"))
+  }
+
+  @MainActor
+  func testUnsavedEditorChangesCanBeKeptAfterCancelling() throws {
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--ui-testing", "--reset-test-store", "-AppleLanguages", "(fr)", "-AppleLocale", "fr_FR",
+    ]
+    app.launch()
+    app.buttons["newTaskDetails"].tap()
+    let title = app.descendants(matching: .any)["editorTitle"].firstMatch
+    XCTAssertTrue(title.waitForExistence(timeout: 5))
+    title.tap()
+    title.typeText("Une idée à garder")
+    app.buttons["Annuler"].tap()
+    let keepEditing = app.buttons["Continuer la saisie"]
+    XCTAssertTrue(keepEditing.waitForExistence(timeout: 3))
+    keepEditing.tap()
+    XCTAssertEqual(title.value as? String, "Une idée à garder")
+    app.buttons["saveTask"].tap()
+    XCTAssertTrue(app.buttons["taskTitle.Une idée à garder"].waitForExistence(timeout: 3))
+  }
+
+  @MainActor
+  func testDetailsKeepsQuickDraftOnCancelAndShowsCreatedTaskFromArchive() throws {
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--ui-testing", "--reset-test-store", "-AppleLanguages", "(fr)", "-AppleLocale", "fr_FR",
+    ]
+    app.launch()
+    let draft = app.textFields["quickAdd"]
+    XCTAssertTrue(draft.waitForExistence(timeout: 5))
+    draft.tap()
+    draft.typeText("Préparer les vacances")
+    app.buttons["newTaskDetails"].tap()
+    app.buttons["Annuler"].tap()
+    XCTAssertTrue(draft.waitForExistence(timeout: 3))
+    XCTAssertEqual(draft.value as? String, "Préparer les vacances")
+    app.buttons["filter.completed"].tap()
+    app.buttons["newTaskDetails"].tap()
+    app.buttons["saveTask"].tap()
+    XCTAssertTrue(app.buttons["taskTitle.Préparer les vacances"].waitForExistence(timeout: 3))
+    XCTAssertTrue(app.buttons["filter.active"].isSelected)
+    XCTAssertNotEqual(draft.value as? String, "Préparer les vacances")
+  }
+
+  @MainActor
   func testRecurrenceCanBeSelectedAcrossTheEntireRow() throws {
     let app = XCUIApplication()
     app.launchArguments = [

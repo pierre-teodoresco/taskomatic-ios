@@ -7,6 +7,7 @@ enum Theme {
   static let ink = Color("Ink")
   static let secondary = Color("Secondary")
   static let accent = Color("AccentColor")
+  static let onAccent = Color("OnAccent")
   static let accentSoft = Color("AccentSoft")
   static let line = Color("Line")
 
@@ -37,7 +38,7 @@ struct PrimaryButton: View {
       }
       .font(.body.weight(.semibold))
       .frame(maxWidth: .infinity, minHeight: 52)
-      .foregroundStyle(.white)
+      .foregroundStyle(Theme.onAccent)
       .background(Theme.accent, in: RoundedRectangle(cornerRadius: 16))
     }
     .buttonStyle(.plain)
@@ -71,6 +72,28 @@ struct SelectionRow: View {
   }
 }
 
+struct SettingsActionRow: View {
+  let title: String
+  let symbol: String
+  var action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      HStack(spacing: 12) {
+        Image(systemName: symbol).frame(width: 24)
+        Text(title).multilineTextAlignment(.leading)
+        Spacer(minLength: 4)
+        Image(systemName: "chevron.right").font(.caption.weight(.semibold))
+          .accessibilityHidden(true)
+      }
+      .font(.subheadline.weight(.medium)).foregroundStyle(Theme.accent)
+      .padding(.horizontal, 20).padding(.vertical, 14)
+      .frame(maxWidth: .infinity, minHeight: 52)
+      .contentShape(Rectangle())
+    }.buttonStyle(.plain)
+  }
+}
+
 struct IconButton: View {
   let symbol: String
   let label: String
@@ -95,7 +118,7 @@ struct BrandMark: View {
   var body: some View {
     Image(systemName: "checkmark")
       .font(.system(size: size * 0.47, weight: .bold))
-      .foregroundStyle(.white)
+      .foregroundStyle(Theme.onAccent)
       .frame(width: size, height: size)
       .background(Theme.accent.gradient, in: RoundedRectangle(cornerRadius: size * 0.29))
       .accessibilityHidden(true)

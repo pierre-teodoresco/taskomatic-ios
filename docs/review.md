@@ -50,3 +50,23 @@ The connected iPhone was inspected through the app’s notification API: authori
 A UI regression test reproduced the recurrence picker ignoring taps in a row's empty trailing area. The shared `SelectionRow` now defines a rectangular touch target across its padded width. Selected options use the semantic accent background and foreground, a checkmark, and the selected accessibility trait. The picker keeps its existing immediate return after selection.
 
 The regression verifies both trailing space and leading padding, then reopens the picker to confirm the selected state. It and the existing recurring-task creation/completion test passed on iPhone 17 / iOS 26.5. The selection test also passed in dark appearance, and both captured renders were inspected. The independent review and follow-up found no actionable issues and verified selected-text contrast in both appearances. The signed Local build succeeded and was installed and launched on the connected iPhone.
+
+## Version 1.1 — backup and usability review
+
+Three independent review passes covered task flows, storage, Files integration, error handling, accessibility and translations. Findings drove these changes:
+
+- Quick-add drafts survive opening and cancelling the detailed editor; successful creation returns to the active filter.
+- Editing an active task's recurrence no longer silently archives or postpones it. A completion made by another context since the editor opened is preserved.
+- Failed Undo remains available after its original six-second timeout. A failed refresh after a successful save is distinguished from a failed write, preventing an invitation to insert a duplicate.
+- Controls use a semantic foreground on accent: contrast is 5.52:1 in light appearance and 6.86:1 in dark appearance. Reminder days have adaptive, at least 44-point targets and fuller weekday labels; language selection has a visible label.
+- Unsaved editor changes require an explicit discard, and sheet gestures preserve them. iOS 26 omitted the role-cancel button in its compact confirmation popover; a normal Keep Editing action fixes the verified omission.
+
+The versioned backup format preserves all task states and rejects invalid or oversized files before writing. A real disk-store test verifies restoration, existing-edit preservation, repeat-import idempotence and fresh cycle tokens after relaunch. A read-only store produces a real save failure and leaves both tasks and disk unchanged. Independent follow-up approved the bounded, coordinated security-scoped reader and the import success message deferred until preview dismissal.
+
+The system Files exporter produced a valid JSON document and showed its success message. A disposable import probe selected that exported file with added missing-task fixtures through Files, confirmed the preview, restored two tasks, observed the success alert and verified the new task on Home. The probe was removed rather than commit a test depending on an external simulator file. iCloud Drive requested account sign-in on the simulator, and CloudKit provisioning was rejected for the Personal Team; neither remote upload nor automatic CloudKit sync is claimed as validated.
+
+Final checks: 17 Swift package tests and 9 storage/notification-queue tests passed. All 12 iPhone 17 / iOS 26.5 UI cases passed, covering the existing flows plus draft preservation, explicit discard/deletion choices and persisted custom recurrence. The full run initially passed 11 UI cases; the remaining test queried a StaticText where the native Stepper exposes its label. Correcting that test query and rerunning the case passed without a production change. Swift formatting, resource validation, all 139 matching English/French keys and placeholders, and `git diff --check` passed. The final independent code follow-up found no actionable issue.
+
+The signed Local build, version 1.1.0 (2), passed code-signature verification and was installed and launched on the connected iPhone. Device app inventory confirmed the version. Simulator fixture resets and backup probes did not touch the physical device's task store.
+
+The final iPhone SE / iOS 18.2 visual pass used dark appearance and accessibility-extra-extra-large text. It confirmed readable reminder-day targets, backup actions and custom recurrence controls, and exposed word fragmentation in the language row. That row now stacks its label above the picker at accessibility sizes. The follow-up reviewer approved this delta; fresh captures and the language/appearance persistence UI test passed. The disposable visual probe was removed, and the signed app was rebuilt, signature-verified, reinstalled and launched with this last correction.

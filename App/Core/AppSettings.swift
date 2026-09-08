@@ -35,6 +35,7 @@ final class AppSettings {
   var reminderPromptDismissed: Bool {
     didSet { defaults.set(reminderPromptDismissed, forKey: "reminderPromptDismissed") }
   }
+  var lastExportAt: Date? { didSet { defaults.set(lastExportAt, forKey: "lastExportAt") } }
 
   init(defaults: UserDefaults = .standard) {
     self.defaults = defaults
@@ -46,6 +47,7 @@ final class AppSettings {
     reminderMinute = defaults.integer(forKey: "reminderMinute")
     weekdays = Set(defaults.array(forKey: "weekdays") as? [Int] ?? Array(1...7))
     reminderPromptDismissed = defaults.bool(forKey: "reminderPromptDismissed")
+    lastExportAt = defaults.object(forKey: "lastExportAt") as? Date
   }
 
   var strings: AppStrings { AppStrings(language: language) }

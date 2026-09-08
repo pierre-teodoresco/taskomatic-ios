@@ -7,21 +7,30 @@ struct TaskEditorView: View {
   @Environment(AppRuntime.self) private var runtime
   @Environment(\.dismiss) private var dismiss
   private let item: TaskItem?
+  private let onCreated: () -> Void
+  private let initialTitle: String
   @State private var title: String
   @State private var note: String
   @State private var recurrence: Recurrence?
-  @State private var deleteConfirmation = false
+  private enum Confirmation { case deletion, discard }
+  @State private var confirmation: Confirmation?
   @State private var saveFailed = false
   @FocusState private var titleFocused: Bool
 
-  init(item: TaskItem?, initialTitle: String = "") {
+  init(item: TaskItem?, initialTitle: String = "", onCreated: @escaping () -> Void = {}) {
     self.item = item
+    self.onCreated = onCreated
+    self.initialTitle = initialTitle
     _title = State(initialValue: item?.title ?? initialTitle)
     _note = State(initialValue: item?.note ?? "")
     _recurrence = State(initialValue: item?.recurrence)
   }
 
   private var text: AppStrings { settings.strings }
+  private var hasChanges: Bool {
+    title != (item?.title ?? initialTitle) || note != (item?.note ?? "")
+      || recurrence != item?.recurrence
+  }
 
   var body: some View {
     NavigationStack {
@@ -76,7 +85,7 @@ struct TaskEditorView: View {
 
           if item != nil {
             Button(role: .destructive) {
-              deleteConfirmation = true
+              confirmation = .deletion
             } label: {
               Label(text("editor.delete"), systemImage: "trash")
                 .font(.subheadline.weight(.medium)).frame(maxWidth: .infinity, minHeight: 48)
@@ -91,7 +100,9 @@ struct TaskEditorView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
-          Button(text("cancel")) { dismiss() }.foregroundStyle(Theme.secondary)
+          Button(text("cancel")) {
+            if hasChanges { confirmation = .discard } else { dismiss() }
+          }.foregroundStyle(Theme.secondary)
         }
         ToolbarItem(placement: .confirmationAction) {
           Button(text(item == nil ? "editor.add" : "editor.save")) { save() }
@@ -101,18 +112,29 @@ struct TaskEditorView: View {
         }
       }
       .confirmationDialog(
-        text("editor.delete.title"), isPresented: $deleteConfirmation, titleVisibility: .visible
+        text(confirmation == .deletion ? "editor.delete.title" : "editor.discard.title"),
+        isPresented: Binding(get: { confirmation != nil }, set: { if !$0 { confirmation = nil } }),
+        titleVisibility: .visible
       ) {
-        Button(text("delete"), role: .destructive) {
-          guard let item else { return }
-          do {
-            try store.delete(item.id)
-            dismiss()
-          } catch { saveFailed = true }
+        if confirmation == .deletion {
+          Button(text("delete"), role: .destructive) {
+            guard let item else { return }
+            do {
+              try store.delete(item.id)
+              dismiss()
+            } catch { saveFailed = true }
+          }
+          Button(text("cancel"), role: .cancel) {}
+        } else {
+          Button(text("editor.discard"), role: .destructive) { dismiss() }
+          Button(text("editor.keepEditing")) { confirmation = nil }
         }
-        Button(text("cancel"), role: .cancel) {}
       } message: {
-        Text(text(runtime.cloudEnabled ? "editor.delete.body" : "editor.delete.localBody"))
+        Text(
+          text(
+            confirmation == .deletion
+              ? (runtime.cloudEnabled ? "editor.delete.body" : "editor.delete.localBody")
+              : "editor.discard.body"))
       }
       .alert(text("error.title"), isPresented: $saveFailed) {
         Button(text("done")) {}
@@ -122,12 +144,14 @@ struct TaskEditorView: View {
       .task {
         if item == nil {
           try? await Task.sleep(for: .milliseconds(300))
+          guard !Task.isCancelled else { return }
           titleFocused = true
         }
       }
     }
     .tint(Theme.accent)
     .presentationDragIndicator(.visible)
+    .interactiveDismissDisabled(hasChanges)
   }
 
   private func detail(_ title: String, date: Date) -> some View {
@@ -145,6 +169,7 @@ struct TaskEditorView: View {
         try store.edit(original: item, title: title, note: note, recurrence: recurrence)
       } else {
         try store.add(title: title, note: note, recurrence: recurrence)
+        onCreated()
       }
       dismiss()
     } catch { saveFailed = true }

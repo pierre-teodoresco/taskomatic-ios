@@ -18,6 +18,16 @@ SwiftData stores CloudKit-compatible records with defaults and optional completi
 
 The Local configuration omits CloudKit capabilities for Personal Team signing. It uses the same bundle identifier and on-device store location. Real CloudKit synchronization remains unvalidated until a paid team provisions the container; account availability alone is not synchronization status.
 
+### Portable backups
+
+`TaskBackup` is the versioned JSON boundary: a format identifier, version, export date, and every task state, including notes and archived tasks. Dates use milliseconds since the Unix epoch. Validate the entire document before constructing a usable backup: unique UUIDs, nonempty titles, dates in the supported range, recurrence units and intervals 1...99. Cap documents at 10 MiB and 10,000 tasks.
+
+The Settings export reads a fresh database snapshot and passes a `BackupDocument` to the system exporter. The user can choose iCloud Drive or another Files provider without an app CloudKit entitlement. An export callback confirms a file was written, not that a provider finished uploading it. Imports coordinate security-scoped file access off the main actor and offer a preview before writing.
+
+Restoration adds only IDs absent from a fresh context at confirmation time. Existing task content and completion remain authoritative; reminder preferences remain local. Imported tasks receive new cycle UUIDs, invalidating old notification actions. One save commits all additions; a save failure rolls back. A post-commit refresh error is reported separately so a successful insertion is never offered as a failed operation to repeat. Reimporting the same file is idempotent within the local store. Independent offline imports on two CloudKit devices remain an unvalidated duplicate-record risk and must be resolved before claiming multi-device import guarantees.
+
+Changing the recurrence of a currently active task preserves its active state, using the fresh record rather than the editor snapshot. An older completion that would otherwise archive or postpone it is cleared and its cycle token rotates. A task completed by another context since the editor opened keeps that completion.
+
 ## Reminder delivery
 
 Local notification delivery is handled by iOS, even while the app is closed. A stable active task set uses indefinite repeating calendar triggers. If a dormant recurring task changes a future summary, the planner prepares up to 60 dated requests. The settings screen displays the coverage date. Background refresh is an opportunistic renewal mechanism, not an execution guarantee: continuity after exhausting that reserve without reopening the app would require a server and remains a product limitation awaiting confirmation.

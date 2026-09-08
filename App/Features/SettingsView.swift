@@ -5,6 +5,7 @@ struct SettingsView: View {
   @Environment(AppSettings.self) private var settings
   @Environment(AppRuntime.self) private var runtime
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   @State private var testSent = false
   private var text: AppStrings { settings.strings }
 
@@ -85,17 +86,24 @@ struct SettingsView: View {
                   }
                 }.pickerStyle(.segmented).accessibilityIdentifier("appearancePicker")
                 Divider().overlay(Theme.line)
-                Picker(text("settings.language"), selection: $settings.language) {
-                  Text(text("settings.system")).tag(AppLanguage.system)
-                  Text("Français").tag(AppLanguage.fr)
-                  Text("English").tag(AppLanguage.en)
-                }.accessibilityIdentifier("languagePicker")
+                languageLayout {
+                  Label(text("settings.language"), systemImage: "globe")
+                    .font(.subheadline)
+                  if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
+                  Picker(text("settings.language"), selection: $settings.language) {
+                    Text(text("settings.system")).tag(AppLanguage.system)
+                    Text("Français").tag(AppLanguage.fr)
+                    Text("English").tag(AppLanguage.en)
+                  }.labelsHidden().accessibilityIdentifier("languagePicker")
+                }
               }.padding(20)
             }
           }
 
+          BackupSettingsSection()
+
           VStack(alignment: .leading, spacing: 12) {
-            SectionCaption(title: text("settings.icloud"))
+            SectionCaption(title: text("settings.storage"))
             Surface {
               VStack(alignment: .leading, spacing: 12) {
                 Label(
@@ -148,12 +156,22 @@ struct SettingsView: View {
     .task { await runtime.notifications.refreshAuthorization() }
   }
 
+  private var languageLayout: AnyLayout {
+    dynamicTypeSize.isAccessibilitySize
+      ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+      : AnyLayout(HStackLayout())
+  }
+
   private var weekdayPicker: some View {
     let calendar = Calendar.current
     let days = (0..<7).map { (calendar.firstWeekday - 1 + $0) % 7 + 1 }
     var localized = calendar
     localized.locale = text.locale
-    return HStack(spacing: 5) {
+    return LazyVGrid(
+      columns: [
+        GridItem(.adaptive(minimum: dynamicTypeSize.isAccessibilitySize ? 100 : 64), spacing: 8)
+      ], spacing: 8
+    ) {
       ForEach(days, id: \.self) { day in
         let selected = settings.weekdays.contains(day)
         Button {
@@ -163,10 +181,12 @@ struct SettingsView: View {
             settings.weekdays.insert(day)
           }
         } label: {
-          Text(localized.veryShortStandaloneWeekdaySymbols[day - 1].uppercased())
+          Text(localized.shortStandaloneWeekdaySymbols[day - 1].uppercased())
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(selected ? .white : Theme.secondary)
+            .foregroundStyle(selected ? Theme.onAccent : Theme.secondary)
+            .padding(.vertical, 8)
             .frame(maxWidth: .infinity, minHeight: 44)
+            .contentShape(Rectangle())
             .background(
               selected ? Theme.accent : Theme.raised, in: RoundedRectangle(cornerRadius: 12))
         }.buttonStyle(.plain)
@@ -174,6 +194,7 @@ struct SettingsView: View {
           .accessibilityAddTraits(selected ? .isSelected : [])
       }
     }
+    .sensoryFeedback(.selection, trigger: settings.weekdays)
   }
 
   @ViewBuilder private var reminderStatus: some View {

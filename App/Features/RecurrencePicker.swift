@@ -38,14 +38,14 @@ struct RecurrencePicker: View {
             .tint(Theme.accent).accessibilityIdentifier("customRecurrence")
           if custom {
             Stepper(value: $interval, in: 1...99) {
-              Text("\(text("repeat.every")) \(interval)").monospacedDigit()
+              Text(text.recurrence(Recurrence(interval: interval, unit: unit))).monospacedDigit()
             }.accessibilityIdentifier("recurrenceInterval")
               .sensoryFeedback(.selection, trigger: interval)
             Picker(text("repeat.interval"), selection: $unit) {
               ForEach(Recurrence.Unit.allCases, id: \.self) { unit in
                 Text(text("repeat.\(unit.rawValue)")).tag(unit)
               }
-            }.pickerStyle(.segmented)
+            }.pickerStyle(.segmented).accessibilityIdentifier("recurrenceUnit")
             PrimaryButton(title: text("done")) {
               recurrence = Recurrence(interval: interval, unit: unit)
               dismiss()

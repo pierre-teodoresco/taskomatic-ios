@@ -49,6 +49,12 @@ Keep device profiles, certificates, credentials, and `Config/Local.xcconfig` out
 
 Apple references: [SwiftData synchronization](https://developer.apple.com/documentation/swiftdata/syncing-model-data-across-a-persons-devices), [CloudKit troubleshooting](https://developer.apple.com/documentation/technotes/tn3164-debugging-the-synchronization-of-nspersistentcloudkitcontainer), [TestFlight](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview).
 
+## Files and iCloud Drive backup verification
+
+The manual exporter/importer works in Local builds. Test with disposable simulator tasks: export from Settings to On My iPhone, inspect the JSON with `TaskBackup.decode`, restore a file containing missing tasks, verify the preview and success message, then relaunch. The storage tests separately verify preservation of existing tasks, repeated imports, rotated notification tokens and rollback with a genuinely read-only store.
+
+For a real iCloud Drive check, choose iCloud Drive in the system exporter on an authenticated device, wait for Files to finish uploading, then download and restore that file on another authenticated device. The simulator used on 8 September 2026 was signed out of iCloud; the provider correctly requested sign-in. Its successful local Files round trip does not prove cloud upload or multi-device synchronization. CloudKit provisioning was also retested and explicitly rejected for the current Personal Team. These are separate integration paths and validation limits.
+
 ## Localization and visual changes
 
 Add matching keys to `App/Resources/en.lproj/Localizable.strings` and `fr.lproj/Localizable.strings`. For another language, add its `.lproj` resource, `AppLanguage` case, settings label, and `knownRegions` entry. The system preference falls back to the app's development language. Translate UI and notification templates; never translate user-entered task content.

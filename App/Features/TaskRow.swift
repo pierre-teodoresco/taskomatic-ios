@@ -61,6 +61,11 @@ struct TaskRow: View {
       .buttonStyle(.plain)
       .accessibilityIdentifier("taskTitle.\(item.title)")
       .accessibilityHint(strings("editor.edit"))
+      .accessibilityValue(
+        strings(
+          state == .active
+            ? "accessibility.active"
+            : state == .waiting ? "accessibility.waiting" : "accessibility.completed"))
     }
     .padding(.vertical, 7)
     .padding(.leading, 7)
