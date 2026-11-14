@@ -60,6 +60,7 @@
 "editor.last" = "Last completed";
 "editor.next" = "Comes back";
 "cancel" = "Cancel";
+"close" = "Close";
 "done" = "Done";
 "delete" = "Delete";
 "repeat.title" = "Repeat after completion";
