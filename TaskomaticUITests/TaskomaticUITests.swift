@@ -28,6 +28,62 @@ final class TaskomaticUITests: XCTestCase {
   }
 
   @MainActor
+  func testRowSwipesCompleteAndDeleteLikeMail() throws {
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--ui-testing", "--reset-test-store", "-AppleLanguages", "(fr)", "-AppleLocale", "fr_FR",
+    ]
+    app.launch()
+    let quickAdd = app.textFields["quickAdd"]
+    XCTAssertTrue(quickAdd.waitForExistence(timeout: 10))
+    for title in ["Sortir le chien", "Appeler le garage"] {
+      quickAdd.tap()
+      quickAdd.typeText(title)
+      app.buttons["quickAddSubmit"].tap()
+      XCTAssertTrue(app.buttons["taskTitle.\(title)"].waitForExistence(timeout: 3))
+    }
+
+    // A full swipe to the right completes the task, as in Mail.
+    fullSwipe(app.buttons["taskTitle.Sortir le chien"], toRight: true)
+    XCTAssertTrue(app.buttons["taskTitle.Sortir le chien"].waitForNonExistence(timeout: 3))
+    app.buttons["filter.completed"].tap()
+    XCTAssertTrue(app.buttons["taskTitle.Sortir le chien"].waitForExistence(timeout: 3))
+    // On a completed task the same swipe restores it.
+    fullSwipe(app.buttons["taskTitle.Sortir le chien"], toRight: true)
+    XCTAssertTrue(app.buttons["taskTitle.Sortir le chien"].waitForNonExistence(timeout: 3))
+    app.buttons["filter.active"].tap()
+    XCTAssertTrue(app.buttons["taskTitle.Sortir le chien"].waitForExistence(timeout: 3))
+
+    // A full swipe to the left deletes the task and offers an undo.
+    fullSwipe(app.buttons["taskTitle.Appeler le garage"], toRight: false)
+    XCTAssertTrue(app.buttons["taskTitle.Appeler le garage"].waitForNonExistence(timeout: 3))
+    let undo = app.buttons["undoAction"]
+    XCTAssertTrue(undo.waitForExistence(timeout: 3))
+    undo.tap()
+    XCTAssertTrue(app.buttons["taskTitle.Appeler le garage"].waitForExistence(timeout: 3))
+
+    // A short swipe reveals the trailing action, which deletes when tapped.
+    app.buttons["taskTitle.Appeler le garage"].swipeLeft()
+    let delete = app.buttons["swipe.delete"]
+    XCTAssertTrue(delete.waitForExistence(timeout: 3))
+    delete.tap()
+    XCTAssertTrue(app.buttons["taskTitle.Appeler le garage"].waitForNonExistence(timeout: 3))
+    app.terminate()
+    app.launchArguments.removeAll { $0 == "--reset-test-store" }
+    app.launch()
+    XCTAssertTrue(app.buttons["taskTitle.Sortir le chien"].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.buttons["taskTitle.Appeler le garage"].exists)
+  }
+
+  @MainActor
+  private func fullSwipe(_ element: XCUIElement, toRight: Bool) {
+    XCTAssertTrue(element.waitForExistence(timeout: 3))
+    let start = element.coordinate(withNormalizedOffset: CGVector(dx: toRight ? 0.1 : 0.9, dy: 0.5))
+    let end = start.withOffset(CGVector(dx: toRight ? 420 : -420, dy: 0))
+    start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .fast, thenHoldForDuration: 0)
+  }
+
+  @MainActor
   func testTappingThePageDismissesQuickAddKeyboardAndKeepsTheDraft() throws {
     let app = XCUIApplication()
     app.launchArguments = [

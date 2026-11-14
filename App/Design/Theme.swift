@@ -10,6 +10,9 @@ enum Theme {
   static let onAccent = Color("OnAccent")
   static let accentSoft = Color("AccentSoft")
   static let line = Color("Line")
+  /// Background of screens built on a plain `List`, matching the system row background so
+  /// rows blend in and a swiped row reads as a rounded platter, as in Messages and Mail.
+  static let listCanvas = Color(uiColor: .systemBackground)
 
   static let pagePadding: CGFloat = 20
   /// Outer radius of content cards. Nested shapes subtract their inset to stay concentric.

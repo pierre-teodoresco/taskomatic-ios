@@ -41,6 +41,9 @@
 "row.note" = "Has a note";
 "undo.completed" = "Task completed";
 "undo.action" = "Undo";
+"undo.deleted" = "Task deleted";
+"swipe.complete" = "Complete";
+"swipe.restore" = "Restore";
 "editor.new" = "New task";
 "editor.edit" = "Task details";
 "editor.title" = "What’s on your mind?";

@@ -5,6 +5,7 @@ struct HomeView: View {
   @Environment(TaskStore.self) private var store
   @Environment(AppSettings.self) private var settings
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   @Environment(\.colorScheme) private var colorScheme
   @State private var completedFilter = false
@@ -12,7 +13,7 @@ struct HomeView: View {
   @State private var quickTitle = ""
   @State private var editor: EditorPresentation?
   @State private var settingsPresented = false
-  @State private var undoneItem: CompletionUndo?
+  @State private var pendingUndo: PendingUndo?
   @State private var undoFailed = false
   @State private var completionCount = 0
   @FocusState private var quickFocused: Bool
@@ -51,57 +52,68 @@ struct HomeView: View {
       let completed = store.items.filter { $0.recurrence == nil && $0.completedAt != nil }
         .sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
 
-      ScrollView {
-        VStack(alignment: .leading, spacing: 24) {
-          Text(text("home.subtitle")).font(.subheadline).foregroundStyle(Theme.secondary)
-            .padding(.horizontal, 4)
-          filters(activeCount: active.count)
-          if completedFilter {
-            if completed.isEmpty {
-              emptyState(kind: .archive)
-            } else {
-              taskList(completed, state: .completed)
-            }
+      List {
+        Section {
+          VStack(alignment: .leading, spacing: 24) {
+            Text(text("home.subtitle")).font(.subheadline).foregroundStyle(Theme.secondary)
+              .padding(.horizontal, 4)
+            filters(activeCount: active.count)
+          }
+          .plainListRow()
+        }
+        if completedFilter {
+          if completed.isEmpty {
+            Section { emptyState(kind: .archive).plainListRow() }
           } else {
-            if active.isEmpty {
-              emptyState(kind: store.items.isEmpty ? .first : .done)
-            } else {
-              taskList(active, state: .active)
-            }
+            taskSection(completed, state: .completed)
+          }
+        } else {
+          if active.isEmpty {
+            Section { emptyState(kind: store.items.isEmpty ? .first : .done).plainListRow() }
+          } else {
+            taskSection(active, state: .active)
+          }
 
-            if !waiting.isEmpty {
-              VStack(spacing: 12) {
-                Button {
-                  withAnimation(animation) { waitingExpanded.toggle() }
-                } label: {
-                  HStack {
-                    SectionCaption(title: text("section.waiting"))
-                    Text("\(waiting.count)").font(.caption.weight(.medium)).foregroundStyle(
-                      Theme.secondary)
-                    Spacer()
-                    Image(systemName: waitingExpanded ? "chevron.up" : "chevron.down")
-                      .font(.caption.weight(.semibold)).foregroundStyle(Theme.secondary)
-                  }.frame(minHeight: 44).contentShape(Rectangle())
-                }.buttonStyle(.plain)
-                if waitingExpanded { taskList(waiting, state: .waiting) }
+          if !waiting.isEmpty {
+            Section {
+              // A row rather than a header: plain-style headers pin while scrolling.
+              Button {
+                withAnimation(animation) { waitingExpanded.toggle() }
+              } label: {
+                HStack {
+                  SectionCaption(title: text("section.waiting"))
+                  Text("\(waiting.count)").font(.caption.weight(.medium)).foregroundStyle(
+                    Theme.secondary)
+                  Spacer()
+                  Image(systemName: waitingExpanded ? "chevron.up" : "chevron.down")
+                    .font(.caption.weight(.semibold)).foregroundStyle(Theme.secondary)
+                }.frame(minHeight: 44).contentShape(Rectangle())
+              }
+              .buttonStyle(.plain)
+              .plainListRow()
+              if waitingExpanded {
+                ForEach(waiting) { item in taskRow(item, state: .waiting) }
               }
             }
-            if !store.items.isEmpty && !settings.remindersEnabled
-              && !settings.reminderPromptDismissed
-            {
-              reminderPrompt
-            }
+          }
+          if !store.items.isEmpty && !settings.remindersEnabled
+            && !settings.reminderPromptDismissed
+          {
+            Section { reminderPrompt.plainListRow() }
           }
         }
-        .padding(.horizontal, Theme.pagePadding)
-        .padding(.top, 4)
-        .padding(.bottom, 28)
       }
+      // Plain style, as in Messages and Mail: iOS rounds a swiped row into a platter only here.
+      .listStyle(.plain)
+      .listSectionSpacing(24)
+      .scrollContentBackground(.hidden)
+      .contentMargins(.horizontal, Theme.pagePadding, for: .scrollContent)
+      .contentMargins(.top, 4, for: .scrollContent)
       .scrollDismissesKeyboard(.interactively)
       .contentShape(Rectangle())
       .simultaneousGesture(TapGesture().onEnded { quickFocused = false })
     }
-    .background(Theme.canvas)
+    .background(Theme.listCanvas)
     .floatingBottomBar { bottomBar }
     .sheet(item: $editor) { presentation in
       TaskEditorView(item: presentation.item, initialTitle: presentation.initialTitle) {
@@ -180,19 +192,45 @@ struct HomeView: View {
     .accessibilityAddTraits(selected ? .isSelected : [])
   }
 
-  private func taskList(_ items: [TaskItem], state: TaskRow.State) -> some View {
-    Surface {
-      LazyVStack(spacing: 0) {
-        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-          TaskRow(item: item, state: state, strings: text, toggle: { toggle(item, state: state) }) {
-            quickFocused = false
-            editor = EditorPresentation(item: item)
-          }
-          if index < items.count - 1 {
-            Rectangle().fill(Theme.line).frame(height: 0.5).padding(.leading, 55)
-          }
-        }
+  private func taskSection(_ items: [TaskItem], state: TaskRow.State) -> some View {
+    Section {
+      ForEach(items) { item in taskRow(item, state: state) }
+    }
+  }
+
+  /// A task row with Mail-style swipe actions: leading completes (or restores), trailing deletes.
+  /// Full swipes run the first action; VoiceOver exposes both as row actions. The row keeps the
+  /// system background: only that background becomes the rounded platter shown while swiping.
+  private func taskRow(_ item: TaskItem, state: TaskRow.State) -> some View {
+    TaskRow(item: item, state: state, strings: text, toggle: { toggle(item, state: state) }) {
+      quickFocused = false
+      editor = EditorPresentation(item: item)
+    }
+    .listRowInsets(EdgeInsets())
+    .listRowSeparatorTint(Theme.line)
+    .alignmentGuide(.listRowSeparatorLeading) { _ in 55 }
+    .swipeActions(edge: .leading, allowsFullSwipe: true) {
+      Button {
+        toggle(item, state: state)
+      } label: {
+        Label(
+          text(state == .active ? "swipe.complete" : "swipe.restore"),
+          systemImage: state == .active ? "checkmark" : "arrow.uturn.backward"
+        )
+        .labelStyle(.iconOnly)
       }
+      .tint(state == .active ? Theme.accent : Color.gray)
+      .accessibilityIdentifier(state == .active ? "swipe.complete" : "swipe.restore")
+    }
+    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+      Button(role: .destructive) {
+        delete(item)
+      } label: {
+        Label(text("delete"), systemImage: "trash").labelStyle(.iconOnly)
+      }
+      // The app-wide accent tint would otherwise override the destructive red.
+      .tint(.red)
+      .accessibilityIdentifier("swipe.delete")
     }
   }
 
@@ -224,31 +262,32 @@ struct HomeView: View {
     // Spacing stays below the 10 pt gaps so the shapes only blend while they animate.
     GlassGroup(spacing: 8) {
       VStack(spacing: 10) {
-        if let undoneItem {
+        if let pendingUndo {
           HStack {
-            Label(text("undo.completed"), systemImage: "checkmark.circle.fill")
-              .font(.subheadline).foregroundStyle(Theme.ink)
+            Label(
+              text(pendingUndo.isDeletion ? "undo.deleted" : "undo.completed"),
+              systemImage: pendingUndo.isDeletion ? "trash.fill" : "checkmark.circle.fill"
+            )
+            .font(.subheadline).foregroundStyle(Theme.ink)
             Spacer()
-            Button(text("undo.action")) {
-              do {
-                try store.undoCompletion(undoneItem)
-                self.undoneItem = nil
-                undoFailed = false
-              } catch {
-                undoFailed = true
-                store.error = error
-              }
-            }
-            .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
-            .frame(minHeight: 44)
+            Button(text("undo.action")) { undo(pendingUndo) }
+              .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
+              .frame(minHeight: 44)
+              .accessibilityIdentifier("undoAction")
           }
           .padding(.leading, 20).padding(.trailing, 16).padding(.vertical, 4)
           .glassLayer(in: Theme.card())
           .transition(.move(edge: .bottom).combined(with: .opacity))
-          .task(id: undoneItem.id) {
+          .task(id: pendingUndo.id) {
+            // VoiceOver users hear the result and keep the banner until they act or a new
+            // action replaces it; six seconds is too short to reach the button.
+            AccessibilityNotification.Announcement(
+              text(pendingUndo.isDeletion ? "undo.deleted" : "undo.completed")
+            ).post()
+            guard !voiceOverEnabled else { return }
             try? await Task.sleep(for: .seconds(6))
             guard !Task.isCancelled, !undoFailed else { return }
-            withAnimation(animation) { self.undoneItem = nil }
+            withAnimation(animation) { self.pendingUndo = nil }
           }
         }
         HStack(alignment: .bottom, spacing: 10) {
@@ -341,7 +380,7 @@ struct HomeView: View {
         if state == .active {
           if let undo = try store.complete(id: item.id, expectedCycle: item.cycleToken) {
             undoFailed = false
-            undoneItem = undo
+            pendingUndo = .completion(undo)
             completionCount += 1
           }
         } else {
@@ -349,6 +388,56 @@ struct HomeView: View {
         }
       }
     }
+  }
+
+  private func delete(_ item: TaskItem) {
+    withAnimation(animation) {
+      store.perform {
+        try store.delete(item.id)
+        undoFailed = false
+        pendingUndo = .deletion(item)
+      }
+    }
+  }
+
+  private func undo(_ pending: PendingUndo) {
+    do {
+      switch pending.kind {
+      case .completion(let undo): try store.undoCompletion(undo)
+      case .deletion(let item): try store.undoDeletion(item)
+      }
+      withAnimation(animation) { pendingUndo = nil }
+      undoFailed = false
+    } catch {
+      undoFailed = true
+      store.error = error
+    }
+  }
+}
+
+/// The last reversible action, offered in the floating undo banner.
+private struct PendingUndo: Identifiable {
+  enum Kind {
+    case completion(CompletionUndo)
+    case deletion(TaskItem)
+  }
+
+  let kind: Kind
+  /// Unique per action so the banner timer restarts even for the same task.
+  let id = UUID()
+
+  static func completion(_ undo: CompletionUndo) -> Self { Self(kind: .completion(undo)) }
+  static func deletion(_ item: TaskItem) -> Self { Self(kind: .deletion(item)) }
+
+  var isDeletion: Bool {
+    if case .deletion = kind { true } else { false }
+  }
+}
+
+extension View {
+  /// A list row that renders its own content on the page background, without row chrome.
+  fileprivate func plainListRow() -> some View {
+    listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
   }
 }
 

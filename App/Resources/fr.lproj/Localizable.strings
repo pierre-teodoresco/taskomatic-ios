@@ -41,6 +41,9 @@
 "row.note" = "Contient une note";
 "undo.completed" = "Tâche terminée";
 "undo.action" = "Annuler";
+"undo.deleted" = "Tâche supprimée";
+"swipe.complete" = "Terminer";
+"swipe.restore" = "Réactiver";
 "editor.new" = "Nouvelle tâche";
 "editor.edit" = "Détail de la tâche";
 "editor.title" = "Qu’as-tu en tête ?";

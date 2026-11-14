@@ -156,6 +156,12 @@ final class TaskStore {
     try commit(context)
   }
 
+  /// Reinserts a task removed by `delete`, keeping its identity, dates and recurrence.
+  /// Does nothing if a task with the same ID exists again (for example, through sync).
+  func undoDeletion(_ item: TaskItem) throws {
+    try restoreBackup(TaskBackup(items: [item]))
+  }
+
   func perform(_ operation: () throws -> Void) {
     do { try operation() } catch { self.error = error }
   }

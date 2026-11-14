@@ -43,6 +43,30 @@ final class TaskStoreTests: XCTestCase {
     }
   }
 
+  func testUndoingADeletionRestoresTheSameTask() throws {
+    let container = try ModelContainer(
+      for: TaskRecord.self,
+      configurations: ModelConfiguration(isStoredInMemoryOnly: true, cloudKitDatabase: .none))
+    let store = try TaskStore(container: container)
+    try store.add(
+      title: "Plantes", note: "Balcon", recurrence: Recurrence(interval: 2, unit: .week))
+    let original = try XCTUnwrap(store.items.first)
+    let completed = Date(timeIntervalSince1970: 1_780_000_000)
+    try store.complete(id: original.id, expectedCycle: original.cycleToken, at: completed)
+    let deleted = try XCTUnwrap(store.items.first)
+    try store.delete(deleted.id)
+    XCTAssertTrue(store.items.isEmpty)
+    try store.undoDeletion(deleted)
+    let restored = try XCTUnwrap(store.items.first)
+    XCTAssertEqual(store.items.count, 1)
+    XCTAssertEqual(restored.id, original.id)
+    XCTAssertEqual(restored.title, "Plantes")
+    XCTAssertEqual(restored.note, "Balcon")
+    XCTAssertEqual(restored.recurrence, Recurrence(interval: 2, unit: .week))
+    XCTAssertEqual(restored.completedAt, completed)
+    XCTAssertEqual(restored.createdAt, original.createdAt)
+  }
+
   func testFailedBackupRestoreDoesNotWriteAnyTasks() throws {
     let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
