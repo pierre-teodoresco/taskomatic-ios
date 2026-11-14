@@ -1,12 +1,12 @@
 {
-  "name": "Main - maintainer merges through pull requests",
+  "name": "Main - maintainer pushes and reviewed contributions",
   "target": "branch",
   "enforcement": "active",
   "bypass_actors": [
     {
       "actor_id": 72601501,
       "actor_type": "User",
-      "bypass_mode": "pull_request"
+      "bypass_mode": "always"
     }
   ],
   "conditions": {

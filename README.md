@@ -6,7 +6,7 @@ Taskomatic est une app iPhone native pour gérer ses tâches personnelles sans d
 
 L’interface privilégie l’ajout rapide, une liste lisible et peu de décisions à prendre. Elle propose une palette indigo, un thème clair et sombre, et des retours haptiques discrets.
 
-**État du projet :** version de développement 1.1.0, utilisable sur iPhone. Le stockage local et les sauvegardes manuelles sont implémentés. L’intégration CloudKit est présente, mais sa synchronisation réelle reste à valider avec une équipe Apple disposant des capacités nécessaires. Le code est hébergé sur [GitHub](https://github.com/pierre-teodoresco/taskomatic-ios), avec les branches `dev` et `main` protégées. Aucune CI distante n’est encore configurée.
+**État du projet :** version de développement 1.1.0, utilisable sur iPhone. Le stockage local et les sauvegardes manuelles sont implémentés. L’intégration CloudKit est présente, mais sa synchronisation réelle reste à valider avec une équipe Apple disposant des capacités nécessaires. Le code est hébergé sur [GitHub](https://github.com/pierre-teodoresco/taskomatic-ios), avec une seule branche, `main`, protégée contre la suppression et la réécriture d’historique. Aucune CI distante n’est encore configurée.
 
 [Démarrage](#démarrage-sur-simulateur) · [Installation iPhone](#installer-sur-un-iphone) · [Architecture](#architecture-et-organisation) · [Sauvegardes et iCloud](#données-sauvegardes-et-icloud) · [Tests](#tests-et-vérification) · [Publication](#préparer-une-publication) · [Licence](#licence)
 
@@ -237,7 +237,7 @@ Pour la version 1.1, **17 tests de domaine, 9 tests de stockage/file de notifica
 
 ## Modifier le projet
 
-Créer les branches de travail depuis `dev` et ouvrir les PR vers `dev`. La promotion vers `main` passe par une PR. Pierre est le code owner de l’ensemble du dépôt ; il garde l’accès direct à `dev` et la décision de fusion. Les modalités de revue, l’exception nécessaire pour ses propres PR et l’usage de GitHub Desktop sont décrits dans [le workflow GitHub](docs/git-workflow.md).
+Le développement se fait directement sur `main` : Pierre (et les agents qu’il mandate) y committent et poussent sans PR. Les contributions externes passent par une PR vers `main`, dont Pierre garde la décision de fusion ; il est le code owner de l’ensemble du dépôt. Les règles de branche, la revue des contributions et l’usage de GitHub Desktop sont décrits dans [le workflow GitHub](docs/git-workflow.md).
 
 Lire [AGENTS.md](AGENTS.md) et les documents du domaine concerné avant une modification. Garder les règles métier dans le package, les adaptations système dans `App/Core` et les composants visuels réutilisables dans `App/Design`.
 
