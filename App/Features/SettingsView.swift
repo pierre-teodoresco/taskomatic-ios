@@ -146,8 +146,14 @@ struct SettingsView: View {
       .navigationTitle(text("settings.title"))
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
-        ToolbarItem(placement: .confirmationAction) {
-          Button(text("done")) { dismiss() }.accessibilityIdentifier("closeSettings")
+        ToolbarItem(placement: .cancellationAction) {
+          Button {
+            dismiss()
+          } label: {
+            // Settings apply immediately, so this is a close action, not a commit.
+            SheetActionLabel(title: text("close"), symbol: "xmark")
+          }
+          .accessibilityIdentifier("closeSettings")
         }
       }
     }
@@ -186,9 +192,8 @@ struct SettingsView: View {
             .foregroundStyle(selected ? Theme.onAccent : Theme.secondary)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, minHeight: 44)
-            .contentShape(Rectangle())
-            .background(
-              selected ? Theme.accent : Theme.raised, in: RoundedRectangle(cornerRadius: 12))
+            .contentShape(Capsule())
+            .background(selected ? Theme.accent : Theme.raised, in: Capsule())
         }.buttonStyle(.plain)
           .accessibilityLabel(localized.weekdaySymbols[day - 1])
           .accessibilityAddTraits(selected ? .isSelected : [])

@@ -16,10 +16,29 @@ struct HomeView: View {
   @State private var undoFailed = false
   @State private var completionCount = 0
   @FocusState private var quickFocused: Bool
+  @Namespace private var filterNamespace
 
   private var text: AppStrings { settings.strings }
 
   var body: some View {
+    NavigationStack {
+      content
+        .navigationTitle(text("home.title"))
+        .toolbar {
+          ToolbarItem(placement: .topBarTrailing) {
+            Button {
+              quickFocused = false
+              settingsPresented = true
+            } label: {
+              Label(text("settings.title"), systemImage: "slider.horizontal.3")
+            }
+            .accessibilityIdentifier("openSettings")
+          }
+        }
+    }
+  }
+
+  private var content: some View {
     TimelineView(.periodic(from: .now, by: 30)) { timeline in
       let active = store.items.filter { $0.isActive(at: timeline.date, calendar: .current) }
       let waiting = store.items.filter {
@@ -33,9 +52,9 @@ struct HomeView: View {
         .sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
 
       ScrollView {
-        VStack(alignment: .leading, spacing: 26) {
-          header
-          title
+        VStack(alignment: .leading, spacing: 24) {
+          Text(text("home.subtitle")).font(.subheadline).foregroundStyle(Theme.secondary)
+            .padding(.horizontal, 4)
           filters(activeCount: active.count)
           if completedFilter {
             if completed.isEmpty {
@@ -75,7 +94,7 @@ struct HomeView: View {
           }
         }
         .padding(.horizontal, Theme.pagePadding)
-        .padding(.top, 12)
+        .padding(.top, 4)
         .padding(.bottom, 28)
       }
       .scrollDismissesKeyboard(.interactively)
@@ -83,7 +102,7 @@ struct HomeView: View {
       .simultaneousGesture(TapGesture().onEnded { quickFocused = false })
     }
     .background(Theme.canvas)
-    .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
+    .floatingBottomBar { bottomBar }
     .sheet(item: $editor) { presentation in
       TaskEditorView(item: presentation.item, initialTitle: presentation.initialTitle) {
         quickTitle = ""
@@ -108,28 +127,13 @@ struct HomeView: View {
     }
   }
 
+  private var canQuickAdd: Bool {
+    !quickTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+  }
+
   private var animation: Animation? { reduceMotion ? nil : .snappy(duration: 0.25) }
 
-  private var header: some View {
-    HStack(spacing: 9) {
-      BrandMark()
-      Text("Taskomatic").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-      Spacer()
-      IconButton(symbol: "slider.horizontal.3", label: text("settings.title")) {
-        quickFocused = false
-        settingsPresented = true
-      }.accessibilityIdentifier("openSettings")
-    }
-  }
-
-  private var title: some View {
-    VStack(alignment: .leading, spacing: 9) {
-      Text(text("home.title"))
-        .font(.largeTitle.weight(.bold)).tracking(-1.0).foregroundStyle(Theme.ink)
-        .accessibilityAddTraits(.isHeader)
-      Text(text("home.subtitle")).font(.subheadline).foregroundStyle(Theme.secondary)
-    }.padding(.top, 6)
-  }
+  private static let filterInset: CGFloat = 4
 
   private func filters(activeCount: Int) -> some View {
     let layout =
@@ -143,8 +147,8 @@ struct HomeView: View {
         withAnimation(animation) { completedFilter = true }
       }.accessibilityIdentifier("filter.completed")
     }
-    .padding(4)
-    .background(Theme.raised, in: RoundedRectangle(cornerRadius: 14))
+    .padding(Self.filterInset)
+    .background(Theme.raised, in: Theme.card())
   }
 
   private func filterButton(
@@ -163,7 +167,14 @@ struct HomeView: View {
       .foregroundStyle(selected ? Theme.ink : Theme.secondary)
       .frame(maxWidth: .infinity, minHeight: 44)
       .contentShape(Rectangle())
-      .background(selected ? Theme.surface : .clear, in: RoundedRectangle(cornerRadius: 11))
+      .background {
+        if selected {
+          // Concentric with the track so the thumb reads as the same material, inset.
+          Theme.card(Theme.corner - Self.filterInset).fill(Theme.surface)
+            .shadow(color: .black.opacity(0.06), radius: 6, y: 2)
+            .matchedGeometryEffect(id: "filterThumb", in: filterNamespace)
+        }
+      }
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(selected ? .isSelected : [])
@@ -197,7 +208,7 @@ struct HomeView: View {
         .font(.system(size: 32, weight: .light))
         .foregroundStyle(Theme.accent)
         .frame(width: 82, height: 82)
-        .background(Theme.accentSoft, in: RoundedRectangle(cornerRadius: 26))
+        .background(Theme.accentSoft, in: Theme.card())
         .accessibilityHidden(true)
       VStack(spacing: 9) {
         Text(text(title)).font(.title3.weight(.semibold)).foregroundStyle(Theme.ink)
@@ -210,83 +221,109 @@ struct HomeView: View {
   }
 
   private var bottomBar: some View {
-    VStack(spacing: 10) {
-      if let undoneItem {
-        HStack {
-          Label(text("undo.completed"), systemImage: "checkmark.circle.fill")
-            .font(.subheadline).foregroundStyle(Theme.ink)
-          Spacer()
-          Button(text("undo.action")) {
-            do {
-              try store.undoCompletion(undoneItem)
-              self.undoneItem = nil
-              undoFailed = false
-            } catch {
-              undoFailed = true
-              store.error = error
+    // Spacing stays below the 10 pt gaps so the shapes only blend while they animate.
+    GlassGroup(spacing: 8) {
+      VStack(spacing: 10) {
+        if let undoneItem {
+          HStack {
+            Label(text("undo.completed"), systemImage: "checkmark.circle.fill")
+              .font(.subheadline).foregroundStyle(Theme.ink)
+            Spacer()
+            Button(text("undo.action")) {
+              do {
+                try store.undoCompletion(undoneItem)
+                self.undoneItem = nil
+                undoFailed = false
+              } catch {
+                undoFailed = true
+                store.error = error
+              }
             }
-          }.font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
+            .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
+            .frame(minHeight: 44)
+          }
+          .padding(.leading, 20).padding(.trailing, 16).padding(.vertical, 4)
+          .glassLayer(in: Theme.card())
+          .transition(.move(edge: .bottom).combined(with: .opacity))
+          .task(id: undoneItem.id) {
+            try? await Task.sleep(for: .seconds(6))
+            guard !Task.isCancelled, !undoFailed else { return }
+            withAnimation(animation) { self.undoneItem = nil }
+          }
         }
-        .padding(16).background(Theme.surface, in: RoundedRectangle(cornerRadius: 16))
-        .task(id: undoneItem.id) {
-          try? await Task.sleep(for: .seconds(6))
-          guard !Task.isCancelled, !undoFailed else { return }
-          withAnimation(animation) { self.undoneItem = nil }
+        HStack(alignment: .bottom, spacing: 10) {
+          Button {
+            quickFocused = false
+            editor = EditorPresentation(initialTitle: quickTitle)
+          } label: {
+            Image(systemName: "plus").font(.system(size: 20, weight: .medium))
+              .foregroundStyle(Theme.ink).frame(width: 52, height: 52)
+              .contentShape(Circle())
+          }
+          .buttonStyle(.plain)
+          .glassLayer(in: Circle(), interactive: true)
+          .accessibilityLabel(text("quick.details"))
+          .accessibilityIdentifier("newTaskDetails")
+
+          HStack(spacing: 4) {
+            TextField(text("quick.placeholder"), text: $quickTitle)
+              .font(.body).foregroundStyle(Theme.ink).focused($quickFocused)
+              .submitLabel(.done).onSubmit(addQuickTask)
+              .padding(.leading, 20).padding(.vertical, 14)
+              .accessibilityIdentifier("quickAdd")
+            if canQuickAdd {
+              Button(action: addQuickTask) {
+                Image(systemName: "arrow.up").font(.system(size: 17, weight: .semibold))
+                  .foregroundStyle(Theme.onAccent).frame(width: 40, height: 40)
+                  .background(Theme.accent, in: Circle())
+                  .frame(width: 44, height: 52)
+                  .contentShape(Rectangle())
+              }
+              .buttonStyle(.plain)
+              .padding(.trailing, 2)
+              .transition(.scale.combined(with: .opacity))
+              .accessibilityLabel(text("quick.add"))
+              .accessibilityIdentifier("quickAddSubmit")
+            }
+          }
+          .frame(minHeight: 52)
+          .glassLayer(in: Theme.card())
         }
       }
-      HStack(spacing: 8) {
-        Button {
-          quickFocused = false
-          editor = EditorPresentation(initialTitle: quickTitle)
-        } label: {
-          Image(systemName: "plus").font(.system(size: 20, weight: .medium))
-            .foregroundStyle(Theme.accent).frame(width: 44, height: 48)
-            .contentShape(Rectangle())
-        }.buttonStyle(.plain).accessibilityLabel(text("quick.details")).accessibilityIdentifier(
-          "newTaskDetails")
-        TextField(text("quick.placeholder"), text: $quickTitle)
-          .font(.body).foregroundStyle(Theme.ink).focused($quickFocused)
-          .submitLabel(.done).onSubmit(addQuickTask)
-          .accessibilityIdentifier("quickAdd")
-        if !quickTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-          Button(action: addQuickTask) {
-            Image(systemName: "arrow.up").font(.system(size: 17, weight: .semibold))
-              .foregroundStyle(Theme.onAccent).frame(width: 38, height: 38)
-              .background(Theme.accent, in: RoundedRectangle(cornerRadius: 12))
-              .frame(width: 44, height: 48)
-              .contentShape(Rectangle())
-          }.buttonStyle(.plain).accessibilityLabel(text("quick.add")).accessibilityIdentifier(
-            "quickAddSubmit")
-        }
-      }
-      .padding(.horizontal, 7).padding(.vertical, 5)
-      .background(Theme.surface, in: RoundedRectangle(cornerRadius: 20))
-      .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(Theme.line, lineWidth: 1))
-      .shadow(color: .black.opacity(0.035), radius: 16, y: 4)
     }
-    .padding(.horizontal, Theme.pagePadding).padding(.top, 10).padding(.bottom, 10)
-    .background(Theme.canvas.opacity(0.98))
+    .animation(animation, value: canQuickAdd)
+    .padding(.horizontal, Theme.barPadding).padding(.top, 8).padding(.bottom, 8)
   }
 
   private var reminderPrompt: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack(alignment: .top) {
+    VStack(alignment: .leading, spacing: 14) {
+      HStack(alignment: .top, spacing: 12) {
         Image(systemName: "bell.badge").font(.title3).foregroundStyle(Theme.accent)
+          .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 6) {
           Text(text("permission.title")).font(.subheadline.weight(.semibold)).foregroundStyle(
             Theme.ink)
           Text(text("permission.body")).font(.footnote).foregroundStyle(Theme.secondary)
         }
       }
-      HStack {
-        Button(text("permission.enable")) { settingsPresented = true }
-          .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
-        Spacer()
+      HStack(spacing: 10) {
+        Button {
+          settingsPresented = true
+        } label: {
+          Text(text("permission.enable")).foregroundStyle(Theme.onAccent)
+        }
+        .font(.subheadline.weight(.semibold))
+        .glassButtonStyle(prominent: true)
         Button(text("permission.later")) { settings.reminderPromptDismissed = true }
           .font(.subheadline).foregroundStyle(Theme.secondary)
-      }.frame(minHeight: 36)
-    }.padding(18).background(
-      Theme.accentSoft.opacity(0.7), in: RoundedRectangle(cornerRadius: Theme.corner))
+          .glassButtonStyle()
+      }
+      .buttonBorderShape(.capsule)
+      .controlSize(.large)
+    }
+    .padding(18)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Theme.accentSoft.opacity(0.7), in: Theme.card())
   }
 
   private func addQuickTask() {

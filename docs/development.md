@@ -2,7 +2,7 @@
 
 ## Tools and project
 
-Use Xcode 26 or newer with Swift 6. The deployment target is iOS 17. The repository has no external runtime dependency; `TaskomaticCore` is a local Swift package. XcodeGen 2.44+ regenerates the checked-in project after `project.yml` changes:
+Use Xcode 26 or newer with Swift 6. The deployment target is iOS 17. This iOS project has no external runtime dependency; `TaskomaticCore` is a local Swift package. XcodeGen 2.44+ regenerates the checked-in project after `project.yml` changes:
 
 ```sh
 xcodegen generate

@@ -60,6 +60,7 @@
 "editor.last" = "Dernière réalisation";
 "editor.next" = "Prochain retour";
 "cancel" = "Annuler";
+"close" = "Fermer";
 "done" = "OK";
 "delete" = "Supprimer";
 "repeat.title" = "Répéter après validation";

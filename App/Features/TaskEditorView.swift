@@ -60,7 +60,7 @@ struct TaskEditorView: View {
                 HStack(spacing: 12) {
                   Image(systemName: "repeat").foregroundStyle(Theme.accent)
                     .frame(width: 36, height: 36).background(
-                      Theme.accentSoft, in: RoundedRectangle(cornerRadius: 10))
+                      Theme.accentSoft, in: Theme.card(Theme.corner - 16))
                   Text(recurrence.map(text.recurrence) ?? text("editor.once"))
                     .font(.body.weight(.medium)).foregroundStyle(Theme.ink)
                   Spacer()
@@ -88,8 +88,13 @@ struct TaskEditorView: View {
               confirmation = .deletion
             } label: {
               Label(text("editor.delete"), systemImage: "trash")
-                .font(.subheadline.weight(.medium)).frame(maxWidth: .infinity, minHeight: 48)
-            }.accessibilityIdentifier("deleteTask")
+                .font(.subheadline.weight(.medium)).frame(maxWidth: .infinity)
+            }
+            .glassButtonStyle()
+            .buttonBorderShape(.capsule)
+            .controlSize(.large)
+            .tint(.red)
+            .accessibilityIdentifier("deleteTask")
           }
         }
         .padding(Theme.pagePadding)
@@ -100,15 +105,23 @@ struct TaskEditorView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
-          Button(text("cancel")) {
+          Button {
             if hasChanges { confirmation = .discard } else { dismiss() }
-          }.foregroundStyle(Theme.secondary)
+          } label: {
+            SheetActionLabel(title: text("cancel"), symbol: "xmark")
+          }
         }
         ToolbarItem(placement: .confirmationAction) {
-          Button(text(item == nil ? "editor.add" : "editor.save")) { save() }
-            .fontWeight(.semibold)
-            .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .accessibilityIdentifier("saveTask")
+          Button {
+            save()
+          } label: {
+            SheetActionLabel(
+              title: text(item == nil ? "editor.add" : "editor.save"), symbol: "checkmark",
+              prominent: true)
+          }
+          .prominentToolbarAction()
+          .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+          .accessibilityIdentifier("saveTask")
         }
       }
       .confirmationDialog(
