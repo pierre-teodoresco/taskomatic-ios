@@ -31,7 +31,7 @@ struct RecurrencePicker: View {
               if key != "repeat.monthly" { Divider().overlay(Theme.line).padding(.leading, 18) }
             }
           }
-          .clipShape(RoundedRectangle(cornerRadius: Theme.corner))
+          .clipShape(Theme.card())
         }
         VStack(alignment: .leading, spacing: 16) {
           Toggle(text("repeat.custom"), isOn: $custom).font(.body.weight(.medium))
@@ -51,7 +51,7 @@ struct RecurrencePicker: View {
               dismiss()
             }
           }
-        }.padding(20).background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.corner))
+        }.padding(20).background(Theme.surface, in: Theme.card())
         Text(text("repeat.explanation")).font(.footnote).foregroundStyle(Theme.secondary)
           .lineSpacing(4)
       }.padding(Theme.pagePadding)
